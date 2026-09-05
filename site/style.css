@@ -247,9 +247,12 @@ svg {
   border-bottom: 1px solid var(--line);
 }
 .pn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--ink);
   padding: 7px 10px;
-  font: 15px monospace;
+  font: 600 15px/1.2 monospace;
   text-align: center;
   width: 48px;
 }
@@ -263,6 +266,16 @@ svg {
   color: var(--muted);
   font-size: 16px;
   line-height: 1.7;
+}
+.recommendation-date {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.recommendation-date time {
+  margin-left: 6px;
 }
 .arrow {
   font-size: 25px;
@@ -402,6 +415,15 @@ svg {
 }
 .prose a {
   color: var(--accent);
+}
+.prose a.pn {
+  color: var(--ink);
+  text-decoration: none;
+  vertical-align: middle;
+}
+.prose a.pn:hover {
+  color: white;
+  background: var(--ink);
 }
 .prose code {
   font:
@@ -624,9 +646,6 @@ svg {
 .table-scroll:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
-}
-.pn {
-  font-weight: 600;
 }
 .sidebar a {
   transition: background 0.15s;

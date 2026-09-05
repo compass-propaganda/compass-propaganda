@@ -32,7 +32,7 @@ Compass Propaganda 오라클 skill을 지금 사용하는 에이전트에 설치
 
 공식 저장소: https://github.com/compass-propaganda/compass-propaganda
 
-저장소 기본 브랜치의 최신 커밋을 가져와 ORACLE.md의 생성·설치 안내를 확인해 주세요. Node.js 20 이상에서 node scripts/build-oracle.mjs와 node scripts/build-oracle.mjs --check를 실행하고, 생성된 dist/compass-propaganda/ 폴더 전체를 현재 에이전트의 공식 설치 방식에 맞는 사용자 범위 skill 위치에 설치해 주세요. 기존 설치가 있다면 사용자 수정사항을 보존하며 갱신해 주세요.
+저장소 기본 브랜치의 최신 커밋을 가져와 oracle/README.md의 생성·설치 안내를 확인해 주세요. Node.js 20 이상에서 node scripts/build-oracle.mjs와 node scripts/build-oracle.mjs --check를 실행하고, 생성된 dist/compass-propaganda/ 폴더 전체를 현재 에이전트의 공식 설치 방식에 맞는 사용자 범위 skill 위치에 설치해 주세요. 기존 설치가 있다면 사용자 수정사항을 보존하며 갱신해 주세요.
 
 설치한 SKILL.md와 references/oracle.md를 읽을 수 있는지 확인하고, 사용한 원문 커밋, 설치 위치와 사용 방법을 알려 주세요.
 ```
@@ -43,7 +43,7 @@ Compass Propaganda 오라클 skill을 지금 사용하는 에이전트에 설치
 
 실명이나 대화 원문은 필요하지 않습니다. 판단을 바꿀 정보가 빠져 있다면 AI가 질문할 수 있습니다. 사용하는 AI 서비스에 제공하는 정보의 범위는 스스로 선택합니다.
 
-skill을 지원하지 않는 AI에는 [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)에서 받은 `oracle.md` 파일 전체를 첨부하거나 붙여 넣습니다. 이 파일에는 기본 교리·용어·실행 지침이 담겨 있습니다. 직접 준비하려면 저장소에서 [생성 명령](ORACLE.md#다른-ai에서-사용하기)을 실행합니다. 권장은 설치본에 저장하지 않고 질문할 때 저장소에서 찾아 읽습니다.
+skill을 지원하지 않는 AI에는 [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)에서 받은 `oracle.md` 파일 전체를 첨부하거나 붙여 넣습니다. 이 파일에는 기본 교리·용어·실행 지침이 담겨 있습니다. 직접 준비하려면 저장소에서 [생성 명령](oracle/README.md#생성과-설치)을 실행합니다. 권장은 설치본에 저장하지 않고 질문할 때 저장소에서 찾아 읽습니다.
 
 ## 답변 받아들이기
 

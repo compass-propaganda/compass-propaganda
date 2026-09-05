@@ -18,10 +18,10 @@ const output = resolve(root, "dist/site");
 const repository = "https://github.com/compass-propaganda/compass-propaganda";
 const groups = [
   [
-    "시작",
+    "입문과 교리",
     [
       ["ONBOARDING.md", "입문 안내"],
-      ["PRINCIPLES.md", "기본 교리와 판단 원칙"],
+      ["PRINCIPLES.md", "판단 원칙"],
       ["TERMINOLOGY.md", "용어"],
     ],
   ],
@@ -34,11 +34,17 @@ const groups = [
     ],
   ],
   [
-    "운영과 구현",
+    "운영",
     [
       ["GOVERNANCE.md", "운영과 참여"],
       ["AI.md", "AI 활용"],
+    ],
+  ],
+  [
+    "구현",
+    [
       ["ORACLE.md", "오라클의 실행과 검증"],
+      ["oracle/README.md", "참조 구현 안내"],
     ],
   ],
 ];
@@ -105,8 +111,13 @@ markdown.core.ruler.push("document-links", (state) => {
       ids.set(id, count + 1);
       token.attrSet("id", count ? `${id}-${count}` : id);
     }
+    const pnMetadata =
+      recPaths.includes(state.env.source) &&
+      token.type === "inline" &&
+      /^Pn: \[P[1-5]\]\(\.\.\/TERMINOLOGY\.md#pn-룰\)$/.test(token.content);
     for (const child of token.children || []) {
       if (child.type !== "link_open") continue;
+      if (pnMetadata) child.attrJoin("class", "pn");
       const href = child.attrGet("href");
       if (!href || /^(?:[a-z][a-z\d+.-]*:|#)/i.test(href)) continue;
       const [path, fragment] = href.split("#");
@@ -150,19 +161,38 @@ function layout(path, title, body) {
 }
 function sidebar(current) {
   const href = (target) => relative(current, target);
-  return `<aside class="sidebar"><details open><summary>문서 목차</summary>${groups.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([source, label]) => `<a href="${href(htmlPath(source))}"${current === htmlPath(source) ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</div>`).join("")}<div class="sidebar-group"><p>권장과 자료</p><a href="${href("recommendations/index.html")}">권장 모음</a><a href="${href("downloads.html")}">오라클 받기</a><a href="${href("README.html")}">교단 소개와 비교</a><a href="${href("PLAN.html")}">설계 계획</a></div></details></aside>`;
+  return `<aside class="sidebar"><details open><summary>문서 목차</summary>${groups.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([source, label]) => `<a href="${href(htmlPath(source))}"${current === htmlPath(source) ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</div>`).join("")}<div class="sidebar-group"><p>권장과 자료</p><a href="${href("recommendations/index.html")}">권장 모음</a><a href="${href("downloads.html")}">오라클 받기</a><a href="${href("PLAN.html")}">설계 계획</a></div></details></aside>`;
 }
-const recommendations = recPaths.map((source) => ({
-  source,
-  title: titleOf(source),
-  pn: sources.get(source).match(/Pn: \[(P\d)/)[1],
-  text: sources.get(source).match(/## 권장\s+([^\n]+)/)[1],
-}));
+const recommendations = recPaths
+  .map((source) => {
+    const content = sources.get(source);
+    const approved = content.match(
+      /^- 승인(?:자·승인일)?: [^\n]+, (\d{4}-\d{2}-\d{2})\.?$/m,
+    )?.[1];
+    if (
+      !approved ||
+      !Number.isFinite(Date.parse(approved)) ||
+      new Date(approved).toISOString().slice(0, 10) !== approved
+    ) {
+      throw new Error(
+        `${source}: 승인 기록에 유효한 YYYY-MM-DD 날짜가 필요합니다.`,
+      );
+    }
+    return {
+      source,
+      title: titleOf(source),
+      pn: content.match(/Pn: \[(P[1-5])/)[1],
+      text: content.match(/## 권장\s+([^\n]+)/)[1],
+      approved,
+      number: Number(posix.basename(source).match(/^\d+/)[0]),
+    };
+  })
+  .sort((a, b) => b.approved.localeCompare(a.approved) || b.number - a.number);
 function recList(from) {
   return recommendations
     .map(
       (rec) =>
-        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="pn">${rec.pn}</span><div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">↗</span></a>`,
+        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="pn">${rec.pn}</span><div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p><div class="recommendation-date">승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></div></div><span class="arrow" aria-hidden="true">↗</span></a>`,
     )
     .join("");
 }
@@ -202,7 +232,7 @@ for (const source of documents) {
   await writeFile(resolve(output, path), layout(path, title, body));
 }
 const mission = sources.get("README.md").match(/^> (.+)$/m)[1];
-const home = `<main id="main"><section class="hero"><div><div class="eyebrow">An open source religion</div><h1>권장합니다.<br><span>근거는 공개합니다.</span></h1><p>복잡한 비교와 근거 검토를 함께 맡고,<br>각자의 삶에서 믿고 참고할 수 있는 선택을 권합니다.</p><div class="hero-actions"><a class="button" href="ONBOARDING.html">입문 안내 <span aria-hidden="true">↗</span></a><a href="README.html">교단에 관하여</a></div></div><div class="hero-symbol">${symbol}</div></section><section class="statement"><div class="eyebrow">Our purpose / 목적</div><p>${escape(mission)}</p></section><section class="section"><div class="routes"><a class="route" href="PRINCIPLES.html"><span class="number">01 / PRINCIPLES</span><h3>무엇을 믿는가 ↗</h3><p>고통과 즐거움, 자율성과 관계.<br>판단의 출발점이 되는 공동의 가치.</p></a><a class="route" href="APPROACH.html"><span class="number">02 / APPROACH</span><h3>어떻게 판단하는가 ↗</h3><p>사실과 가치 선택을 구분하고,<br>근거와 반례로 판단을 고치는 방법.</p></a><a class="route" href="GOVERNANCE.html"><span class="number">03 / PARTICIPATION</span><h3>어떻게 함께하는가 ↗</h3><p>참여와 실천은 자유입니다.<br>질문하고, 수정하고, 다르게 생각할 수 있습니다.</p></a></div></section><section class="section"><div class="section-label"><h2>일상의 권장</h2><a href="recommendations/index.html">모두 읽기 ↗</a></div>${recList("index.html")}</section><section class="section"><div class="oracle-strip"><div><h2>당신의 AI에서, 오라클을.</h2><p>공통 원칙을 설치하고 자신의 사례를 물어보세요.<br>권장은 공식 저장소에서 찾아 적용합니다.</p></div><a class="button" href="downloads.html">오라클 받기 <span aria-hidden="true">↗</span></a></div></section></main>`;
+const home = `<main id="main"><section class="hero"><div><div class="eyebrow">An open source religion</div><h1>권장합니다.<br><span>근거는 공개합니다.</span></h1><p>복잡한 비교와 근거 검토를 함께 맡고,<br>각자의 삶에서 믿고 참고할 수 있는 선택을 권합니다.</p><div class="hero-actions"><a class="button" href="ONBOARDING.html">입문 안내 <span aria-hidden="true">↗</span></a><a href="PRINCIPLES.html">판단 원칙 읽기</a></div></div><div class="hero-symbol">${symbol}</div></section><section class="statement"><div class="eyebrow">Our purpose / 목적</div><p>${escape(mission)}</p></section><section class="section"><div class="routes"><a class="route" href="PRINCIPLES.html"><span class="number">01 / PRINCIPLES</span><h3>무엇을 믿는가 ↗</h3><p>고통과 즐거움, 자율성과 관계.<br>판단의 출발점이 되는 공동의 가치.</p></a><a class="route" href="APPROACH.html"><span class="number">02 / APPROACH</span><h3>어떻게 판단하는가 ↗</h3><p>사실과 가치 선택을 구분하고,<br>근거와 반례로 판단을 고치는 방법.</p></a><a class="route" href="GOVERNANCE.html"><span class="number">03 / PARTICIPATION</span><h3>어떻게 함께하는가 ↗</h3><p>참여와 실천은 자유입니다.<br>질문하고, 수정하고, 다르게 생각할 수 있습니다.</p></a></div></section><section class="section"><div class="section-label"><h2>일상의 권장</h2><a href="recommendations/index.html">모두 읽기 ↗</a></div>${recList("index.html")}</section><section class="section"><div class="oracle-strip"><div><h2>오라클 사용하기</h2><p>사용하는 AI에 프롬프트나 skill을 제공하고 사례를 묻습니다.<br>AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p></div><a class="button" href="downloads.html">오라클 받기 <span aria-hidden="true">↗</span></a></div></section></main>`;
 await writeFile(
   resolve(output, "index.html"),
   layout("index.html", "Compass Propaganda", home),
@@ -218,7 +248,7 @@ const installPrompt = sources
 const bundle = (await readFile(resolve(root, "dist/oracle.md"), "utf8")).match(
   /문서 묶음 식별자: (.+)/,
 )[1];
-const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사</button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></div><div class="download-grid"><section class="download-card"><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p><a class="button secondary" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p><a class="button secondary" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div><p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="ORACLE.html">오라클의 실행과 검증</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
+const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사</button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></div><div class="download-grid"><section class="download-card"><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p><a class="button secondary" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p><a class="button secondary" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div><p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
 await writeFile(
   resolve(output, "downloads.html"),
   layout("downloads.html", "오라클 받기", downloads),

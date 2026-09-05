@@ -2,7 +2,7 @@
 
 ## 문서와 콘텐츠
 
-별도 표시가 없는 이 저장소의 직접 작성한 Markdown 문서와 콘텐츠는 **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**로 제공합니다.
+별도 표시가 없는 이 저장소의 직접 작성한 Markdown 문서와 콘텐츠는 **Creative Commons Attribution-ShareAlike 4.0 International**(CC BY-SA 4.0)로 제공합니다.
 
 - [공식 조건 요약](https://creativecommons.org/licenses/by-sa/4.0/)
 - [라이선스 전문](LICENSES/CC-BY-SA-4.0.txt)
