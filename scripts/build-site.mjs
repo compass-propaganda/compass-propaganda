@@ -68,6 +68,7 @@ const sources = new Map(
     ]),
   ),
 );
+const purpose = sources.get("PRINCIPLES.md").match(/^> (.+)$/m)[1];
 const htmlPath = (path) => path.replace(/\.md$/, ".html");
 const relative = (from, to) =>
   posix.relative(posix.dirname(from), to) || posix.basename(to);
@@ -156,7 +157,7 @@ const titleOf = (source) => sources.get(source).match(/^# (.+)$/m)[1];
 function layout(path, title, body) {
   const href = (target) => relative(path, target);
   return `<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="감당하기 어려운 고통에서 벗어나, 스스로 기꺼이 살아가고 싶은 삶을 지속하도록 돕는다."><meta name="theme-color" content="#ffffff"><title>${escape(title)}${title === "Compass Propaganda" ? "" : " — Compass Propaganda"}</title><link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml"><link rel="stylesheet" href="${href("assets/style.css")}"><script src="${href("assets/client.js")}" defer></script></head>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escape(purpose)}"><meta name="theme-color" content="#ffffff"><title>${escape(title)}${title === "Compass Propaganda" ? "" : " — Compass Propaganda"}</title><link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml"><link rel="stylesheet" href="${href("assets/style.css")}"><script src="${href("assets/client.js")}" defer></script></head>
 <body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell"><header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass<br>propaganda</span></a><nav aria-label="주 메뉴"><a href="${href("PRINCIPLES.html")}">교리</a><a href="${href("recommendations/index.html")}">권장</a><a class="nav-action" href="${href("downloads.html")}">오라클 ↗</a><a class="external" href="${repository}">GitHub ↗</a></nav></header>${body}<footer class="footer"><span>Compass Propaganda<br>컴퍼스 프로파간다</span><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div></footer></div></body></html>`;
 }
 function sidebar(current) {
@@ -231,7 +232,7 @@ for (const source of documents) {
   const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>COMPASS PROPAGANDA / 문서</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div></article></main>`;
   await writeFile(resolve(output, path), layout(path, title, body));
 }
-const mission = sources.get("README.md").match(/^> (.+)$/m)[1];
+const mission = purpose;
 const home = `<main id="main"><section class="hero"><div><div class="eyebrow">An open source religion</div><h1>권장합니다.<br><span>근거는 공개합니다.</span></h1><p>복잡한 비교와 근거 검토를 함께 맡고,<br>각자의 삶에서 믿고 참고할 수 있는 선택을 권합니다.</p><div class="hero-actions"><a class="button" href="ONBOARDING.html">입문 안내 <span aria-hidden="true">↗</span></a><a href="PRINCIPLES.html">판단 원칙 읽기</a></div></div><div class="hero-symbol">${symbol}</div></section><section class="statement"><div class="eyebrow">Our purpose / 목적</div><p>${escape(mission)}</p></section><section class="section"><div class="routes"><a class="route" href="PRINCIPLES.html"><span class="number">01 / PRINCIPLES</span><h3>무엇을 믿는가 ↗</h3><p>고통과 즐거움, 자율성과 관계.<br>판단의 출발점이 되는 공동의 가치.</p></a><a class="route" href="APPROACH.html"><span class="number">02 / APPROACH</span><h3>어떻게 판단하는가 ↗</h3><p>사실과 가치 선택을 구분하고,<br>근거와 반례로 판단을 고치는 방법.</p></a><a class="route" href="GOVERNANCE.html"><span class="number">03 / PARTICIPATION</span><h3>어떻게 함께하는가 ↗</h3><p>참여와 실천은 자유입니다.<br>질문하고, 수정하고, 다르게 생각할 수 있습니다.</p></a></div></section><section class="section"><div class="section-label"><h2>일상의 권장</h2><a href="recommendations/index.html">모두 읽기 ↗</a></div>${recList("index.html")}</section><section class="section"><div class="oracle-strip"><div><h2>오라클 사용하기</h2><p>사용하는 AI에 프롬프트나 skill을 제공하고 사례를 묻습니다.<br>AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p></div><a class="button" href="downloads.html">오라클 받기 <span aria-hidden="true">↗</span></a></div></section></main>`;
 await writeFile(
   resolve(output, "index.html"),
