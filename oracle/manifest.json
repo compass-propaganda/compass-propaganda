@@ -1,0 +1,8 @@
+{
+  "instructions": "oracle/PROMPT.md",
+  "skill": "oracle/SKILL.md",
+  "documents": [
+    { "path": "PRINCIPLES.md", "role": "principles" },
+    { "path": "TERMINOLOGY.md", "role": "terminology" }
+  ]
+}
