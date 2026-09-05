@@ -5,6 +5,7 @@ import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { parseRecommendations } from "./recommendations.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const site = join(root, "dist/site");
@@ -20,6 +21,16 @@ async function htmlFiles(directory) {
 }
 const pages = await htmlFiles(site);
 const terminology = await readFile(join(root, "TERMINOLOGY.md"), "utf8");
+const recPaths = (await readdir(join(root, "recommendations")))
+  .filter((name) => /^\d+.*\.md$/.test(name))
+  .sort()
+  .map((name) => `recommendations/${name}`);
+const recommendations = parseRecommendations(new Map(await Promise.all(
+  recPaths.map(async (path) => [path, await readFile(join(root, path), "utf8")]),
+)));
+const bySource = new Map(recommendations.map((rec) => [rec.source, rec]));
+const escape = (text) => text.replace(/[&<>"']/g, (char) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 let links = 0;
 for (const page of pages) {
   const html = await readFile(page, "utf8");
@@ -50,11 +61,8 @@ for (const page of pages) {
     assert.equal(metadata.get(`twitter:${key}`), metadata.get(`og:${key}`));
   }
   if (/^recommendations\/\d.*\.html$/.test(path)) {
-    const source = await readFile(
-      join(root, path.replace(/\.html$/, ".md")),
-      "utf8",
-    );
-    const pn = source.match(/^Pn: \[(P[1-5])\]/m)[1];
+    const rec = bySource.get(path.replace(/\.html$/, ".md"));
+    const pn = rec.pn;
     const meaning = terminology.match(
       new RegExp(`^\\| ${pn} \\| (.+?) \\|$`, "m"),
     )[1];
@@ -63,6 +71,19 @@ for (const page of pages) {
       badge?.includes(`>${pn}</span>`) && badge.includes(meaning),
       `Missing Pn code or meaning: ${page}`,
     );
+    assert.equal((html.match(/class="pn-badge"/g) || []).length, 1);
+    assert(html.includes(`<dt>효력</dt><dd>${escape(rec.effect)}</dd>`));
+    const record = html.match(/<details class="recommendation-metadata">([\s\S]*?)<\/details>/)?.[1];
+    assert(record?.includes(`<dt>승인</dt><dd>${escape(rec.approvedBy)} · <time datetime="${rec.approved}">`));
+    if (rec.author) assert(record.includes(`<dt>작성자</dt><dd>${escape(rec.author)}</dd>`));
+    if (rec.writtenAt) assert(record.includes(`<dt>작성일</dt><dd><time datetime="${rec.writtenAt}">`));
+    const header = html.match(/<div class="recommendation-metadata">([\s\S]*?)<\/dl><\/div>/)?.[1];
+    assert(!/<dt>(승인|작성자|작성일)<\/dt>/.test(header), `Attribution in recommendation header: ${page}`);
+    assert(!html.includes("approved_by:"), `Front matter rendered as prose: ${page}`);
+    if (rec.replacement) {
+      const target = relative(dirname(page), join(site, rec.replacement.replace(/\.md$/, ".html")));
+      assert(html.includes(`<dt>대체 권장</dt><dd><a href="${escape(target)}">`));
+    }
   }
   const navigation = html.match(
     /<nav aria-label="차례">([\s\S]*?)<\/nav>/,
@@ -119,10 +140,6 @@ for (const page of pages) {
   }
 }
 const prompt = await readFile(join(root, "dist/oracle.md"), "utf8");
-const recPaths = (await readdir(join(root, "recommendations")))
-  .filter((name) => /^\d+.*\.md$/.test(name))
-  .sort()
-  .map((name) => `recommendations/${name}`);
 const index = await readFile(join(site, "recommendations/index.md"), "utf8");
 const indexedPaths = [...index.matchAll(/\[Markdown 원문\]\(([^)]+)\)/g)]
   .map(([, url]) => {
@@ -136,14 +153,15 @@ for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
   if (recPaths.includes(source)) {
     const entry = index.split(/^## /m).find((part) => part.includes(`${publicSite}${source})`));
     assert(entry.includes(createHash("sha256").update(original).digest("hex")), `Wrong content hash: ${source}`);
-    const effect = original.toString().match(/^효력: (.+)$/m)[1];
+    const rec = bySource.get(source);
+    const effect = rec.effect;
     assert(entry.includes(`- 효력: ${effect}\n`), `Wrong effect: ${source}`);
+    assert(entry.includes(`- 승인자: ${rec.approvedBy}\n`), `Wrong approver: ${source}`);
+    assert(entry.includes(`- 승인일: ${rec.approved}\n`), `Wrong approval date: ${source}`);
     const home = await readFile(join(site, "index.html"), "utf8");
     assert.equal(home.includes(`href="${source.replace(/\.md$/, ".html")}"`), effect === "현행", `Incorrect home recommendation: ${source}`);
-    const replacement = original.toString().match(/^대체 권장: \[[^\]]+\]\(([^)]+)\)$/m)?.[1];
-    if (replacement) {
-      const target = relative(site, resolve(site, dirname(source), replacement));
-      assert(entry.includes(`[대체 권장](${publicSite}${target})`), `Wrong replacement: ${source}`);
+    if (rec.replacement) {
+      assert(entry.includes(`[대체 권장](${publicSite}${rec.replacement})`), `Wrong replacement: ${source}`);
     }
     // Raw recommendation links must still reach their shared criteria.
     for (const [, href] of original.toString().matchAll(/\]\(([^)]+)\)/g)) {

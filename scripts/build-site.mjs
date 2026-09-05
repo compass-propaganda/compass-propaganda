@@ -71,6 +71,8 @@ const sources = new Map(
     ]),
   ),
 );
+const recommendations = parseRecommendations(sources);
+const recommendationsBySource = new Map(recommendations.map((rec) => [rec.source, rec]));
 const purpose = sources.get("PRINCIPLES.md").match(/^> (.+)$/m)[1];
 const htmlPath = (path) => path.replace(/\.md$/, ".html");
 const relative = (from, to) =>
@@ -122,15 +124,6 @@ markdown.core.ruler.push("document-links", (state) => {
       ids.set(id, count + 1);
       token.attrSet("id", count ? `${id}-${count}` : id);
     }
-    const pnMetadata =
-      recPaths.includes(state.env.source) &&
-      token.type === "inline" &&
-      /^Pn: \[P[1-5]\]\(\.\.\/TERMINOLOGY\.md#pn-룰\)$/.test(token.content);
-    if (pnMetadata) {
-      token.type = "pn_badge";
-      token.meta = { pn: token.content.match(/\[(P[1-5])\]/)[1] };
-      state.tokens[i - 1].attrJoin("class", "pn-metadata");
-    }
     for (const child of token.children || []) {
       if (child.type !== "link_open") continue;
       const href = child.attrGet("href");
@@ -166,10 +159,17 @@ markdown.core.ruler.push("document-links", (state) => {
     }
   }
 });
-markdown.renderer.rules.pn_badge = (tokens, idx, options, env) => {
-  const pn = tokens[idx].meta.pn;
+markdown.renderer.rules.heading_close = (tokens, idx, options, env, self) => {
+  const heading = self.renderToken(tokens, idx, options);
+  const rec = recommendationsBySource.get(env.source);
+  if (!rec || tokens[idx].tag !== "h1") return heading;
   const href = relative(env.output, "TERMINOLOGY.html") + "#pn-룰";
-  return `<a class="pn-badge" href="${href}"><span class="pn-code">${pn}</span><span class="pn-caption"><span class="pn-label">반영 요청</span><span>${escape(pnLabels.get(pn))}</span></span><span class="pn-link" aria-hidden="true">→</span></a>`;
+  const fields = [["효력", escape(rec.effect)]];
+  if (rec.replacement) {
+    const target = recommendationsBySource.get(rec.replacement);
+    fields.push(["대체 권장", `<a href="${escape(relative(env.output, htmlPath(target.source)))}">${escape(target.title)}</a>`]);
+  }
+  return `${heading}<div class="recommendation-metadata"><p class="pn-metadata"><a class="pn-badge" href="${href}"><span class="pn-code">${rec.pn}</span><span class="pn-caption"><span class="pn-label">반영 요청</span><span>${escape(pnLabels.get(rec.pn))}</span></span><span class="pn-link" aria-hidden="true">→</span></a></p><dl>${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}</dl></div>\n`;
 };
 markdown.renderer.rules.table_open = () =>
   '<div class="table-scroll" tabindex="0" role="region" aria-label="비교 표"><table>\n';
@@ -181,9 +181,17 @@ markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
   }
   return originalFence(tokens, idx, options, env, self);
 };
-const render = (source, text = sources.get(source)) =>
-  markdown.render(text, { source, output: htmlPath(source) });
-const titleOf = (source) => sources.get(source).match(/^# (.+)$/m)[1];
+const render = (source, text = recommendationsBySource.get(source)?.body ?? sources.get(source)) => {
+  const body = markdown.render(text, { source, output: htmlPath(source) });
+  const rec = recommendationsBySource.get(source);
+  if (!rec) return body;
+  const date = (value) => `<time datetime="${value}">${value.replaceAll("-", ".")}</time>`;
+  const fields = [["승인", `${escape(rec.approvedBy)} · ${date(rec.approved)}`]];
+  if (rec.author) fields.push(["작성자", escape(rec.author)]);
+  if (rec.writtenAt) fields.push(["작성일", date(rec.writtenAt)]);
+  return `${body}<details class="recommendation-metadata"><summary>판단 기록 정보</summary><dl>${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}</dl></details>`;
+};
+const titleOf = (source) => recommendationsBySource.get(source)?.title ?? sources.get(source).match(/^# (.+)$/m)[1];
 function descriptionOf(source) {
   if (source === "PRINCIPLES.md") return purpose;
   if (source === "TERMINOLOGY.md")
@@ -274,7 +282,6 @@ function sidebar(current) {
     (current.startsWith("recommendations/") ? "권장 모음" : "서고");
   return `<aside class="sidebar"><details open data-document-menu><summary>차례<span class="sidebar-current">${currentLabel}</span></summary><nav aria-label="차례">${sections.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([target, label]) => navigationLink(current, target, label)).join("")}</div>`).join("")}</nav></details></aside>`;
 }
-const recommendations = parseRecommendations(sources);
 const currentRecommendations = recommendations.filter((rec) => rec.effect === "현행");
 const archivedRecommendations = recommendations.filter((rec) => rec.effect !== "현행");
 function recList(from, entries = currentRecommendations) {
@@ -317,7 +324,7 @@ for (const source of documents) {
   const path = htmlPath(source);
   const title = titleOf(source);
   await mkdir(dirname(resolve(output, path)), { recursive: true });
-  const rec = recommendations.find((item) => item.source === source);
+  const rec = recommendationsBySource.get(source);
   const category = rec
     ? `권장 / ${String(rec.number).padStart(3, "0")}`
     : groups.find(([, entries]) =>
@@ -364,11 +371,13 @@ const recIndex = `# 권장 원문 인덱스
 
 빌드 기준 커밋: [${revision}](${repository}/tree/${revision})
 원문은 아래 Markdown 주소에서 직접 읽습니다. 접근할 수 없으면 HTML 또는 저장소 원문을 읽습니다. 각 SHA-256은 배포된 Markdown 파일의 내용을 식별하며, 오라클 문서 묶음 식별자와는 별개입니다.
+원문 맨 앞의 YAML 프런트 매터에서 pn·effect·approved_by·approved_at을 확인합니다. 대체된 권장은 replacement 경로로 후속 원문을 찾습니다.
 
 ${recommendations.map((rec) => `## ${String(rec.number).padStart(3, "0")}. ${rec.title}
 
 - 효력: ${rec.effect}${rec.replacement ? `\n- [대체 권장](${publicSite}${rec.replacement})` : ""}
 - 반영 요청: ${rec.pn} — ${pnLabels.get(rec.pn)}
+- 승인자: ${rec.approvedBy}
 - 승인일: ${rec.approved}
 - 권장 요지: ${rec.text}
 - [Markdown 원문](${publicSite}${rec.source})

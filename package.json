@@ -6,9 +6,12 @@
     "build": "node scripts/build-oracle.mjs && node scripts/build-site.mjs",
     "test": "node --test scripts/*.test.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "markdown-it": "15.0.1",
-    "markdown-it-footnote": "4.0.0"
+    "markdown-it-footnote": "4.0.0",
+    "yaml": "2.9.0"
   }
 }

@@ -503,6 +503,25 @@ svg {
 .prose .pn-metadata {
   margin: -12px 0 32px;
 }
+.recommendation-metadata dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+.recommendation-metadata dl > div {
+  display: flex;
+  gap: 10px;
+}
+.recommendation-metadata dt {
+  color: var(--muted);
+}
+.recommendation-metadata dd {
+  margin: 0;
+}
+details.recommendation-metadata > dl {
+  padding: 20px 0;
+}
 .prose a.pn-badge {
   display: inline-grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
