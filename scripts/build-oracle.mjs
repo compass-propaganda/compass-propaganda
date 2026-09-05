@@ -45,9 +45,8 @@ try {
   const skill = await readSource(manifest.skill);
   const bundleId = digest(JSON.stringify({ sources, skill: { path: manifest.skill, sha256: digest(skill) } }));
   const output = [
-    '# Compass Propaganda — 다른 AI에 제공할 오라클',
+    '# Compass Propaganda 오라클',
     `문서 묶음 식별자: sha256:${bundleId}`,
-    '이 파일 전체를 AI에 제공하고, 별도의 메시지에 자신의 사례를 적으세요. 아래 문서의 상대 경로는 원본 저장소의 경로입니다. 링크된 외부 자료의 본문은 포함되어 있지 않습니다.',
     ...sources.map(({ path, role, sha256, content }) =>
       `---\n문서: ${JSON.stringify(path)}\n역할: ${role}\n원문 SHA-256: ${sha256}\n\n${content}`),
     '---\nCompass Propaganda contributors. [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). 링크된 외부 자료는 각 출처의 이용 조건을 따릅니다.',
