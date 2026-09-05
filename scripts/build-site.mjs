@@ -184,6 +184,26 @@ markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
 const render = (source, text = sources.get(source)) =>
   markdown.render(text, { source, output: htmlPath(source) });
 const titleOf = (source) => sources.get(source).match(/^# (.+)$/m)[1];
+function descriptionOf(source) {
+  if (source === "PRINCIPLES.md") return purpose;
+  if (source === "TERMINOLOGY.md")
+    return "불꽃과 해방, 권장과 오라클, 정경과 정본 등 Compass Propaganda의 개념과 규범 표현을 설명합니다.";
+  const tokens = markdown.parse(sources.get(source), {
+    source,
+    output: htmlPath(source),
+  });
+  const index = tokens.findIndex(
+    (token) => token.type === "paragraph_open" && token.level === 0,
+  );
+  return (tokens[index + 1]?.children || [])
+    .map((token) =>
+      token.type === "text" || token.type === "code_inline"
+        ? token.content
+        : token.type === "softbreak" ? " " : "",
+    )
+    .join("")
+    .trim() || purpose;
+}
 function navigationLink(current, target, label) {
   const active =
     current === target
@@ -194,10 +214,38 @@ function navigationLink(current, target, label) {
         : null;
   return `<a href="${relative(current, target)}"${active ? ` aria-current="${active}"` : ""}>${label}</a>`;
 }
-function layout(path, title, body) {
+function layout(path, title, body, description = purpose) {
   const href = (target) => relative(path, target);
+  const pageTitle = title === "Compass Propaganda" ? title : `${title} — Compass Propaganda`;
+  const canonical = new URL(path === "index.html" ? "./" : path, publicSite).href;
+  const imageUrl = new URL("assets/social.png", publicSite).href;
   return `<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escape(purpose)}"><meta name="theme-color" content="#fafaf7"><title>${escape(title)}${title === "Compass Propaganda" ? "" : " — Compass Propaganda"}</title><link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml"><link rel="stylesheet" href="${href("assets/style.css")}"><script src="${href("assets/client.js")}" defer></script></head>
+<html lang="ko" prefix="og: https://ogp.me/ns#"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escape(pageTitle)}</title>
+<meta name="description" content="${escape(description)}">
+<link rel="canonical" href="${escape(canonical)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Compass Propaganda">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="${escape(pageTitle)}">
+<meta property="og:description" content="${escape(description)}">
+<meta property="og:url" content="${escape(canonical)}">
+<meta property="og:image" content="${imageUrl}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="밝은 바탕 중앙에 작게 놓인 Compass Propaganda 나침반 심볼">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escape(pageTitle)}">
+<meta name="twitter:description" content="${escape(description)}">
+<meta name="twitter:image" content="${imageUrl}">
+<meta name="twitter:image:alt" content="밝은 바탕 중앙에 작게 놓인 Compass Propaganda 나침반 심볼">
+<meta name="theme-color" content="#fafaf7">
+<link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml">
+<link rel="stylesheet" href="${href("assets/style.css")}">
+<script src="${href("assets/client.js")}" defer></script></head>
 <body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell">
 <header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "downloads.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
 ${body}
@@ -240,7 +288,7 @@ function recList(from, entries = currentRecommendations) {
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
 await mkdir(resolve(output, "downloads"), { recursive: true });
-for (const file of ["style.css", "client.js", "symbol.svg", "flame.png"])
+for (const file of ["style.css", "client.js", "symbol.svg", "flame.png", "social.png"])
   await copyFile(resolve(root, "site", file), resolve(output, "assets", file));
 for (const file of await readdir(resolve(root, "LICENSES"))) {
   await mkdir(resolve(output, "LICENSES"), { recursive: true });
@@ -276,7 +324,10 @@ for (const source of documents) {
         entries.some(([path]) => path === source),
       )?.[0] || "서고";
   const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div></article></main>`;
-  await writeFile(resolve(output, path), layout(path, title, body));
+  const description = rec
+    ? `${rec.effect !== "현행" ? `${rec.effect}된 권장. ` : ""}${rec.text}`
+    : descriptionOf(source);
+  await writeFile(resolve(output, path), layout(path, title, body, description));
 }
 const home = `<main id="main" class="home">
 <section class="cover" aria-labelledby="cover-title">
@@ -301,7 +352,7 @@ await writeFile(
 const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / 현행 ${currentRecommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}${archivedRecommendations.length ? `<section class="prose"><h2>철회·대체된 권장</h2><p>아래 권장은 현재 적용하지 않습니다.</p></section>${recList("recommendations/index.html", archivedRecommendations)}` : ""}</article></main>`;
 await writeFile(
   resolve(output, "recommendations/index.html"),
-  layout("recommendations/index.html", "권장", recPage),
+  layout("recommendations/index.html", "권장", recPage, "중앙이 승인한 권장과 적용 조건을 읽습니다. 반영 요청의 강도와 판단 이유, 출처를 함께 살펴볼 수 있습니다."),
 );
 // Preserve source bytes and relative links to the shared judgment criteria.
 for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
@@ -338,7 +389,7 @@ const downloads = `<main id="main" class="document-layout">${sidebar("downloads.
 <p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
 await writeFile(
   resolve(output, "downloads.html"),
-  layout("downloads.html", "오라클 받기", downloads),
+  layout("downloads.html", "오라클 받기", downloads, "Compass Propaganda의 기본 교리와 판단 원칙을 자신의 AI에서 사용하는 오라클 프롬프트와 Agent Skill을 받습니다."),
 );
 console.log(
   `Built ${documents.length + 3} pages and oracle downloads in ${output}`,

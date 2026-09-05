@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const site = join(root, "dist/site");
+const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
 async function htmlFiles(directory) {
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -25,6 +26,29 @@ for (const page of pages) {
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length, `Duplicate anchors in ${page}`);
   const path = relative(site, page);
+  const canonical = new URL(path === "index.html" ? "./" : path, publicSite).href;
+  assert.equal(html.match(/<link rel="canonical" href="([^"]+)"/)[1], canonical);
+  const metadata = new Map();
+  for (const [, key, value] of html.matchAll(/<meta (?:name|property)="([^"]+)" content="([^"]*)"/g)) {
+    assert(!metadata.has(key), `Duplicate metadata: ${page} -> ${key}`);
+    metadata.set(key, value);
+  }
+  assert(metadata.get("description")?.trim(), `Missing description: ${page}`);
+  assert.equal(metadata.get("og:title"), html.match(/<title>([^<]+)<\/title>/)[1]);
+  assert.equal(metadata.get("og:description"), metadata.get("description"));
+  assert.equal(metadata.get("og:url"), canonical);
+  assert.equal(metadata.get("og:type"), "website");
+  const imageUrl = metadata.get("og:image");
+  assert(imageUrl?.startsWith(publicSite), `Unexpected sharing image: ${page}`);
+  const image = await readFile(join(site, imageUrl.slice(publicSite.length)));
+  assert.equal(image.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(Number(metadata.get("og:image:width")), image.readUInt32BE(16));
+  assert.equal(Number(metadata.get("og:image:height")), image.readUInt32BE(20));
+  assert(metadata.get("og:image:alt")?.trim(), `Missing sharing image description: ${page}`);
+  assert.equal(metadata.get("twitter:card"), "summary_large_image");
+  for (const key of ["title", "description", "image", "image:alt"]) {
+    assert.equal(metadata.get(`twitter:${key}`), metadata.get(`og:${key}`));
+  }
   if (/^recommendations\/\d.*\.html$/.test(path)) {
     const source = await readFile(
       join(root, path.replace(/\.html$/, ".md")),
@@ -71,7 +95,8 @@ for (const page of pages) {
       );
     }
   }
-  for (const [, raw] of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
+  for (const [tag, raw] of html.matchAll(/<[^>]+\b(?:href|src)="([^"]+)"[^>]*>/g)) {
+    if (tag.startsWith("<link ") && tag.includes('rel="canonical"')) continue;
     assert(
       !raw.startsWith("https://compass-propaganda.github.io/compass-propaganda/"),
       `Internal site link leaves the current deployment: ${page} -> ${raw}`,
@@ -99,7 +124,6 @@ const recPaths = (await readdir(join(root, "recommendations")))
   .sort()
   .map((name) => `recommendations/${name}`);
 const index = await readFile(join(site, "recommendations/index.md"), "utf8");
-const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
 const indexedPaths = [...index.matchAll(/\[Markdown 원문\]\(([^)]+)\)/g)]
   .map(([, url]) => {
     assert(url.startsWith(publicSite), `Unexpected recommendation origin: ${url}`);
