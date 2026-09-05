@@ -35,7 +35,7 @@
 
 권장의 주제뿐 아니라 적용 조건과 판단 이유로 관련 문서를 찾습니다. 제안에 유리한 사례와 함께 적용을 제한하거나 반대 결론을 지지하는 사례도 비교합니다. 답변에는 어떤 권장을 직접 적용했고 어떤 권장을 유사 사례로 참고했는지 밝힙니다.
 
-공식 공개 출처는 [compass-propaganda/compass-propaganda](https://github.com/compass-propaganda/compass-propaganda)입니다. 저장소 기본 브랜치의 `recommendations/`에서 파일 목록과 원문을 확인합니다. 웹 검색 결과에만 의존하지 않으며, 파일 화면을 읽을 수 없으면 원문 링크나 GitHub API를 활용합니다. 로컬 저장소를 사용할 때에는 해당 경로와 커밋, 최신성의 한계를 확인합니다. 원문을 읽지 못하면 공통 원칙에 따른 개별 제안이나 판단 보류로 답하고 확인 범위를 밝힙니다.
+공식 공개 출처는 [compass-propaganda/compass-propaganda](https://github.com/compass-propaganda/compass-propaganda)입니다. 우선 저장소에서 생성한 [권장 원문 인덱스](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.md)를 직접 열고, 연결된 원문을 읽습니다. 접근할 수 없으면 사이트의 HTML 본문이나 저장소 기본 브랜치의 `recommendations/`, 원문 링크·GitHub API를 활용합니다. 웹 검색 결과에만 의존하지 않습니다. 사이트는 배포된 판본을 제공하므로 저장소보다 갱신이 늦을 수 있으며, 사용한 자료의 판본과 최신성의 한계를 확인합니다. 원문을 읽지 못하면 공통 원칙에 따른 개별 제안이나 판단 보류로 답하고 확인 범위를 밝힙니다.
 
 권장을 적용할 때는 [Pn 룰](TERMINOLOGY.md#pn-룰)에 따른 반영 요청의 강도와 [규범 표현](TERMINOLOGY.md#규범-표현)의 요구 수준을 유지하며, 이를 긴급성이나 근거의 확실성, 신도의 의무로 바꾸지 않습니다.
 

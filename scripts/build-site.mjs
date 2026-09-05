@@ -10,6 +10,7 @@ import {
 import { dirname, resolve, posix } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 
@@ -323,6 +324,28 @@ await writeFile(
   resolve(output, "recommendations/index.html"),
   layout("recommendations/index.html", "권장", recPage),
 );
+// Preserve source bytes and relative links to the shared judgment criteria.
+for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
+  await writeFile(resolve(output, source), sources.get(source));
+}
+const recIndex = `# 권장 원문 인덱스
+
+공식 저장소에서 생성한 권장 목록입니다. 후보를 찾은 뒤 원문 전체를 읽고 승인·적용 조건·예외·수정 및 철회 여부를 확인합니다. 목록의 요지만으로 권장을 적용하지 않습니다.
+
+빌드 기준 커밋: [${revision}](${repository}/tree/${revision})
+원문은 아래 Markdown 주소에서 직접 읽습니다. 접근할 수 없으면 HTML 또는 저장소 원문을 읽습니다. 각 SHA-256은 배포된 Markdown 파일의 내용을 식별하며, 오라클 문서 묶음 식별자와는 별개입니다.
+
+${recommendations.map((rec) => `## ${String(rec.number).padStart(3, "0")}. ${rec.title}
+
+- 반영 요청: ${rec.pn} — ${pnLabels.get(rec.pn)}
+- 승인일: ${rec.approved}
+- 권장 요지: ${rec.text}
+- [Markdown 원문](${publicSite}${rec.source})
+- [HTML 본문](${publicSite}${htmlPath(rec.source)})
+- [저장소 원문](${sourceUrl(rec.source)})
+- SHA-256: ${createHash("sha256").update(sources.get(rec.source)).digest("hex")}
+`).join("\n")}`;
+await writeFile(resolve(output, "recommendations/index.md"), recIndex);
 const installPrompt = sources
   .get("ONBOARDING.md")
   .match(/```text\n([\s\S]*?)```/)[1];

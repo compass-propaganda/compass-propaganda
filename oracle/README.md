@@ -19,6 +19,8 @@ skill을 지원하는 AI에서는 `dist/compass-propaganda/` 폴더 전체를 �
 
 ## 배포와 판본 확인
 
+권장을 조회할 때는 [권장 원문 인덱스](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.md)와 연결된 Markdown 원문을 먼저 읽습니다. 사이트 빌드가 저장소에서 생성하며, 인덱스에 빌드 기준 커밋과 권장별 내용 해시를 제공합니다. 자세한 생성 경로는 [사이트 빌드](../site/README.md)에 정리합니다.
+
 `dist/`는 Git에 포함하지 않는 생성물 경로입니다. 원문과 생성 도구를 저장소에서 관리하며, 사이트 빌드가 같은 원문으로 프롬프트와 skill 압축파일을 생성합니다. 완성된 파일은 [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)에서 받습니다.
 
 [문서 목록](manifest.json)은 입력 범위를 명시합니다. 생성 파일에는 각 원문의 내용과 SHA-256 해시, 묶음 식별자가 들어갑니다. 원문이 바뀌면 다시 생성해야 하며 `--check`는 변경을 감지합니다. 해시는 내용의 식별 수단이며 중앙의 신원을 인증하는 서명은 아닙니다.

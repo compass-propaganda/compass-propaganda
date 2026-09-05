@@ -4,6 +4,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const site = join(root, "dist/site");
@@ -93,6 +94,35 @@ for (const page of pages) {
   }
 }
 const prompt = await readFile(join(root, "dist/oracle.md"), "utf8");
+const recPaths = (await readdir(join(root, "recommendations")))
+  .filter((name) => /^\d+.*\.md$/.test(name))
+  .sort()
+  .map((name) => `recommendations/${name}`);
+const index = await readFile(join(site, "recommendations/index.md"), "utf8");
+const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
+const indexedPaths = [...index.matchAll(/\[Markdown 원문\]\(([^)]+)\)/g)]
+  .map(([, url]) => {
+    assert(url.startsWith(publicSite), `Unexpected recommendation origin: ${url}`);
+    return url.slice(publicSite.length);
+  });
+assert.deepEqual([...indexedPaths].sort(), recPaths, "Recommendation index is incomplete or duplicated");
+for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
+  const original = await readFile(join(root, source));
+  assert.deepEqual(await readFile(join(site, source)), original, `Altered source: ${source}`);
+  if (recPaths.includes(source)) {
+    const entry = index.split(/^## /m).find((part) => part.includes(`${publicSite}${source})`));
+    assert(entry.includes(createHash("sha256").update(original).digest("hex")), `Wrong content hash: ${source}`);
+    // Raw recommendation links must still reach their shared criteria.
+    for (const [, href] of original.toString().matchAll(/\]\((\.\.[^)]+)\)/g)) {
+      assert((await stat(resolve(site, dirname(source), href.split("#")[0]))).isFile());
+    }
+  }
+}
+for (const [, url] of index.matchAll(/\]\(([^)]+)\)/g)) {
+  if (url.startsWith(publicSite)) {
+    assert((await stat(join(site, url.slice(publicSite.length)))).isFile());
+  }
+}
 assert.equal(await readFile(join(site, "downloads/oracle.md"), "utf8"), prompt);
 const archive = join(site, "downloads/compass-propaganda.zip");
 const entries = execFileSync("unzip", ["-Z1", archive], { encoding: "utf8" })
@@ -118,5 +148,5 @@ assert.equal(
   await readFile(join(root, "oracle/SKILL.md"), "utf8"),
 );
 console.log(
-  `Verified ${pages.length} HTML pages, ${links} local links, and both oracle downloads.`,
+  `Verified ${pages.length} HTML pages, ${links} local links, ${recPaths.length} indexed recommendation sources, and both oracle downloads.`,
 );
