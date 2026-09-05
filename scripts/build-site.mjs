@@ -103,6 +103,13 @@ const symbol = (
 const markdown = new MarkdownIt({ html: true, typographer: false }).use(
   footnote,
 );
+const pnLabels = new Map(
+  [
+    ...sources.get("TERMINOLOGY.md").matchAll(/^\| (P[1-5]) \| (.+?) \|$/gm),
+  ].map(([, code, label]) => [code, label]),
+);
+if (pnLabels.size !== 5)
+  throw new Error("용어 문서에 P1–P5의 의미가 필요합니다.");
 markdown.core.ruler.push("document-links", (state) => {
   const ids = new Map();
   for (let i = 0; i < state.tokens.length; i++) {
@@ -117,9 +124,13 @@ markdown.core.ruler.push("document-links", (state) => {
       recPaths.includes(state.env.source) &&
       token.type === "inline" &&
       /^Pn: \[P[1-5]\]\(\.\.\/TERMINOLOGY\.md#pn-룰\)$/.test(token.content);
+    if (pnMetadata) {
+      token.type = "pn_badge";
+      token.meta = { pn: token.content.match(/\[(P[1-5])\]/)[1] };
+      state.tokens[i - 1].attrJoin("class", "pn-metadata");
+    }
     for (const child of token.children || []) {
       if (child.type !== "link_open") continue;
-      if (pnMetadata) child.attrJoin("class", "pn");
       const href = child.attrGet("href");
       if (href?.startsWith(publicSite)) {
         const target = new URL(href);
@@ -153,28 +164,65 @@ markdown.core.ruler.push("document-links", (state) => {
     }
   }
 });
+markdown.renderer.rules.pn_badge = (tokens, idx, options, env) => {
+  const pn = tokens[idx].meta.pn;
+  const href = relative(env.output, "TERMINOLOGY.html") + "#pn-룰";
+  return `<a class="pn-badge" href="${href}"><span class="pn-code">${pn}</span><span class="pn-caption"><span class="pn-label">반영 요청</span><span>${escape(pnLabels.get(pn))}</span></span><span class="pn-link" aria-hidden="true">→</span></a>`;
+};
 markdown.renderer.rules.table_open = () =>
   '<div class="table-scroll" tabindex="0" role="region" aria-label="비교 표"><table>\n';
 markdown.renderer.rules.table_close = () => "</table></div>\n";
 const originalFence = markdown.renderer.rules.fence;
 markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
   if (env.source === "ONBOARDING.md" && tokens[idx].info.trim() === "text") {
-    return `<div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사</button><span role="status" aria-live="polite"></span></div><pre><code id="install-request">${escape(tokens[idx].content)}</code></pre>`;
+    return `<div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사 <span aria-hidden="true">⧉</span></button><span role="status" aria-live="polite"></span></div><pre><code id="install-request">${escape(tokens[idx].content)}</code></pre>`;
   }
   return originalFence(tokens, idx, options, env, self);
 };
 const render = (source, text = sources.get(source)) =>
   markdown.render(text, { source, output: htmlPath(source) });
 const titleOf = (source) => sources.get(source).match(/^# (.+)$/m)[1];
+function navigationLink(current, target, label) {
+  const active =
+    current === target
+      ? "page"
+      : target === "recommendations/index.html" &&
+          current.startsWith("recommendations/")
+        ? "location"
+        : null;
+  return `<a href="${relative(current, target)}"${active ? ` aria-current="${active}"` : ""}>${label}</a>`;
+}
 function layout(path, title, body) {
   const href = (target) => relative(path, target);
   return `<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escape(purpose)}"><meta name="theme-color" content="#ffffff"><title>${escape(title)}${title === "Compass Propaganda" ? "" : " — Compass Propaganda"}</title><link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml"><link rel="stylesheet" href="${href("assets/style.css")}"><script src="${href("assets/client.js")}" defer></script></head>
-<body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell"><header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass<br>propaganda</span></a><nav aria-label="주 메뉴"><a href="${href("PRINCIPLES.html")}">교리</a><a href="${href("recommendations/index.html")}">권장</a><a class="nav-action" href="${href("downloads.html")}">오라클 ↗</a><a class="external" href="${repository}">GitHub ↗</a></nav></header>${body}<footer class="footer"><span>Compass Propaganda<br>컴퍼스 프로파간다</span><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div></footer></div></body></html>`;
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${escape(purpose)}"><meta name="theme-color" content="#fafaf7"><title>${escape(title)}${title === "Compass Propaganda" ? "" : " — Compass Propaganda"}</title><link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml"><link rel="stylesheet" href="${href("assets/style.css")}"><script src="${href("assets/client.js")}" defer></script></head>
+<body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell">
+<header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "downloads.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
+${body}
+<footer class="footer"><a class="footer-brand" href="${href("index.html")}">compass<br>propaganda<span>컴퍼스 프로파간다</span></a><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div><a class="edition" href="${repository}/tree/${revision}"><span>원문 판본</span><span>${revision.slice(0, 7)} ↗</span></a></footer></div></body></html>`;
 }
 function sidebar(current) {
-  const href = (target) => relative(current, target);
-  return `<aside class="sidebar"><details open><summary>문서 목차</summary>${groups.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([source, label]) => `<a href="${href(htmlPath(source))}"${current === htmlPath(source) ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</div>`).join("")}<div class="sidebar-group"><p>권장과 자료</p><a href="${href("recommendations/index.html")}">권장 모음</a><a href="${href("downloads.html")}">오라클 받기</a><a href="${href("PLAN.html")}">설계 계획</a></div></details></aside>`;
+  const sections = [
+    ...groups.map(([name, entries]) => [
+      name,
+      entries.map(([source, label]) => [htmlPath(source), label]),
+    ]),
+    [
+      "권장과 자료",
+      [
+        ["recommendations/index.html", "권장 모음"],
+        ["downloads.html", "오라클 받기"],
+        ["PLAN.html", "설계 계획"],
+        ["LICENSE.html", "라이선스"],
+      ],
+    ],
+  ];
+  const currentLabel =
+    sections
+      .flatMap(([, entries]) => entries)
+      .find(([path]) => path === current)?.[1] ||
+    (current.startsWith("recommendations/") ? "권장 모음" : "서고");
+  return `<aside class="sidebar"><details open data-document-menu><summary>차례<span class="sidebar-current">${currentLabel}</span></summary><nav aria-label="차례">${sections.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([target, label]) => navigationLink(current, target, label)).join("")}</div>`).join("")}</nav></details></aside>`;
 }
 const recommendations = recPaths
   .map((source) => {
@@ -205,14 +253,14 @@ function recList(from) {
   return recommendations
     .map(
       (rec) =>
-        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="pn">${rec.pn}</span><div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p><div class="recommendation-date">승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></div></div><span class="arrow" aria-hidden="true">↗</span></a>`,
+        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="recommendation-number">${String(rec.number).padStart(3, "0")}</span><div class="recommendation-content"><div class="recommendation-meta"><span class="pn-code" title="${escape(pnLabels.get(rec.pn))}">${rec.pn}</span><span>승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></span></div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">→</span></a>`,
     )
     .join("");
 }
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
 await mkdir(resolve(output, "downloads"), { recursive: true });
-for (const file of ["style.css", "client.js", "symbol.svg"])
+for (const file of ["style.css", "client.js", "symbol.svg", "flame.png"])
   await copyFile(resolve(root, "site", file), resolve(output, "assets", file));
 for (const file of await readdir(resolve(root, "LICENSES"))) {
   await mkdir(resolve(output, "LICENSES"), { recursive: true });
@@ -241,16 +289,36 @@ for (const source of documents) {
   const path = htmlPath(source);
   const title = titleOf(source);
   await mkdir(dirname(resolve(output, path)), { recursive: true });
-  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>COMPASS PROPAGANDA / 문서</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div></article></main>`;
+  const rec = recommendations.find((item) => item.source === source);
+  const category = rec
+    ? `권장 / ${String(rec.number).padStart(3, "0")}`
+    : groups.find(([, entries]) =>
+        entries.some(([path]) => path === source),
+      )?.[0] || "서고";
+  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div></article></main>`;
   await writeFile(resolve(output, path), layout(path, title, body));
 }
-const mission = purpose;
-const home = `<main id="main"><section class="hero"><div><div class="eyebrow">An open source religion</div><h1>권장합니다.<br><span>근거는 공개합니다.</span></h1><p>복잡한 비교와 근거 검토를 함께 맡고,<br>각자의 삶에서 믿고 참고할 수 있는 선택을 권합니다.</p><div class="hero-actions"><a class="button" href="ONBOARDING.html">입문 안내 <span aria-hidden="true">↗</span></a><a href="PRINCIPLES.html">판단 원칙 읽기</a></div></div><div class="hero-symbol">${symbol}</div></section><section class="statement"><div class="eyebrow">Our purpose / 목적</div><p>${escape(mission)}</p></section><section class="section"><div class="routes"><a class="route" href="PRINCIPLES.html"><span class="number">01 / PRINCIPLES</span><h3>무엇을 믿는가 ↗</h3><p>고통과 즐거움, 자율성과 관계.<br>판단의 출발점이 되는 공동의 가치.</p></a><a class="route" href="APPROACH.html"><span class="number">02 / APPROACH</span><h3>어떻게 판단하는가 ↗</h3><p>사실과 가치 선택을 구분하고,<br>근거와 반례로 판단을 고치는 방법.</p></a><a class="route" href="GOVERNANCE.html"><span class="number">03 / PARTICIPATION</span><h3>어떻게 함께하는가 ↗</h3><p>참여와 실천은 자유입니다.<br>질문하고, 수정하고, 다르게 생각할 수 있습니다.</p></a></div></section><section class="section"><div class="section-label"><h2>일상의 권장</h2><a href="recommendations/index.html">모두 읽기 ↗</a></div>${recList("index.html")}</section><section class="section"><div class="oracle-strip"><div><h2>오라클 사용하기</h2><p>사용하는 AI에 프롬프트나 skill을 제공하고 사례를 묻습니다.<br>AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p></div><a class="button" href="downloads.html">오라클 받기 <span aria-hidden="true">↗</span></a></div></section></main>`;
+const home = `<main id="main" class="home">
+<section class="cover" aria-labelledby="cover-title">
+<img class="cover-flame" src="assets/flame.png" width="1536" height="1024" alt="" fetchpriority="high">
+<div class="cover-copy">
+<h1 id="cover-title" class="cover-purpose">${escape(purpose)}</h1>
+<a class="text-link" href="ONBOARDING.html">입문 안내 <span aria-hidden="true">→</span></a>
+</div>
+</section>
+<section class="section contents"><div class="section-label"><h2>서고</h2></div><div class="routes">
+<a class="route" href="ONBOARDING.html"><h3>입문 안내</h3><p>교리의 요약과 권장을 읽는 방법</p><span class="arrow" aria-hidden="true">→</span></a>
+<a class="route" href="PRINCIPLES.html"><h3>판단 원칙</h3><p>기본 교리와 공통의 판단 기준</p><span class="arrow" aria-hidden="true">→</span></a>
+<a class="route" href="APPROACH.html"><h3>과학적 접근</h3><p>근거의 검토, 결과의 예측과 검증</p><span class="arrow" aria-hidden="true">→</span></a>
+<a class="route" href="GOVERNANCE.html"><h3>운영과 참여</h3><p>권장의 승인과 발행, 제안과 수정</p><span class="arrow" aria-hidden="true">→</span></a></div></section>
+<section class="section"><div class="section-label"><h2>권장</h2><a class="text-link" href="recommendations/index.html">권장 모음 <span aria-hidden="true">→</span></a></div>${recList("index.html")}</section>
+<section class="section oracle-section"><h2>오라클</h2><div><p>사용하는 AI에 프롬프트나 skill을 제공하고 사례를 묻습니다. AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p><a class="text-link" href="downloads.html">오라클 받기 <span aria-hidden="true">→</span></a></div></section>
+</main>`;
 await writeFile(
   resolve(output, "index.html"),
   layout("index.html", "Compass Propaganda", home),
 );
-const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p><p>Pn은 반영을 요청하는 강도입니다. <a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 ↗</a></p></div>${recList("recommendations/index.html")}</article></main>`;
+const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / ${recommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}</article></main>`;
 await writeFile(
   resolve(output, "recommendations/index.html"),
   layout("recommendations/index.html", "권장", recPage),
@@ -261,7 +329,10 @@ const installPrompt = sources
 const bundle = (await readFile(resolve(root, "dist/oracle.md"), "utf8")).match(
   /문서 묶음 식별자: (.+)/,
 )[1];
-const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사</button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></div><div class="download-grid"><section class="download-card"><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p><a class="button secondary" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p><a class="button secondary" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div><p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
+const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="article-meta"><span>참조 구현 / 다운로드</span><a href="oracle/README.html">구성·설치 안내 ↗</a></div><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p>
+<section class="installation"><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사 <span aria-hidden="true">⧉</span></button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></section></div>
+<div class="download-grid"><section class="download-card"><span class="file-format" aria-hidden="true">MD</span><div><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p></div><a class="button" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><span class="file-format" aria-hidden="true">ZIP</span><div><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p></div><a class="button" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div>
+<p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
 await writeFile(
   resolve(output, "downloads.html"),
   layout("downloads.html", "오라클 받기", downloads),

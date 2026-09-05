@@ -2,6 +2,6 @@
   <title>Compass Propaganda</title>
   <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
   <path d="M47 12 36 36 17 52 28 28Z" fill="currentColor"/>
-  <path d="M47 12 36 36 28 28Z" fill="#e9432d"/>
-  <circle cx="32" cy="32" r="2.5" fill="white"/>
+  <path d="M47 12 36 36 28 28Z" fill="#c83232"/>
+  <circle cx="32" cy="32" r="2.5" fill="#fafaf7"/>
 </svg>

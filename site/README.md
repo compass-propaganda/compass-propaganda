@@ -1,6 +1,8 @@
 # 사이트 빌드
 
-루트의 Markdown이 문서 원문이며, `scripts/build-site.mjs`가 HTML과 문서 내 링크·각주를 생성합니다. 로고는 `symbol.svg`, 화면과 복사 동작은 `style.css`·`client.js`에서 관리합니다.
+`scripts/build-site.mjs`가 저장소의 Markdown 원문에서 HTML과 문서 내 링크·각주를 생성하고, `site/`의 정적 자산을 복사합니다.
+
+## 빌드와 배포
 
 ```sh
 npm ci
