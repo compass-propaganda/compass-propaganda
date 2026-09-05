@@ -23,6 +23,10 @@ for (const page of pages) {
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length, `Duplicate anchors in ${page}`);
   for (const [, raw] of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
+    assert(
+      !raw.startsWith("https://compass-propaganda.github.io/compass-propaganda/"),
+      `Internal site link leaves the current deployment: ${page} -> ${raw}`,
+    );
     if (/^[a-z][a-z\d+.-]*:/i.test(raw)) continue;
     const [path, anchor] = raw.split("#");
     const target = path

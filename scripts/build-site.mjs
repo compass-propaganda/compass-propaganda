@@ -16,6 +16,7 @@ import footnote from "markdown-it-footnote";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = resolve(root, "dist/site");
 const repository = "https://github.com/compass-propaganda/compass-propaganda";
+const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
 const groups = [
   [
     "입문과 교리",
@@ -120,6 +121,17 @@ markdown.core.ruler.push("document-links", (state) => {
       if (child.type !== "link_open") continue;
       if (pnMetadata) child.attrJoin("class", "pn");
       const href = child.attrGet("href");
+      if (href?.startsWith(publicSite)) {
+        const target = new URL(href);
+        child.attrSet(
+          "href",
+          relative(
+            state.env.output,
+            target.pathname.slice(new URL(publicSite).pathname.length) || "index.html",
+          ) + target.search + target.hash,
+        );
+        continue;
+      }
       if (!href || /^(?:[a-z][a-z\d+.-]*:|#)/i.test(href)) continue;
       const [path, fragment] = href.split("#");
       const target = posix.normalize(
