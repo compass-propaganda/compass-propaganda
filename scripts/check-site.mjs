@@ -112,8 +112,18 @@ for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
   if (recPaths.includes(source)) {
     const entry = index.split(/^## /m).find((part) => part.includes(`${publicSite}${source})`));
     assert(entry.includes(createHash("sha256").update(original).digest("hex")), `Wrong content hash: ${source}`);
+    const effect = original.toString().match(/^효력: (.+)$/m)[1];
+    assert(entry.includes(`- 효력: ${effect}\n`), `Wrong effect: ${source}`);
+    const home = await readFile(join(site, "index.html"), "utf8");
+    assert.equal(home.includes(`href="${source.replace(/\.md$/, ".html")}"`), effect === "현행", `Incorrect home recommendation: ${source}`);
+    const replacement = original.toString().match(/^대체 권장: \[[^\]]+\]\(([^)]+)\)$/m)?.[1];
+    if (replacement) {
+      const target = relative(site, resolve(site, dirname(source), replacement));
+      assert(entry.includes(`[대체 권장](${publicSite}${target})`), `Wrong replacement: ${source}`);
+    }
     // Raw recommendation links must still reach their shared criteria.
-    for (const [, href] of original.toString().matchAll(/\]\((\.\.[^)]+)\)/g)) {
+    for (const [, href] of original.toString().matchAll(/\]\(([^)]+)\)/g)) {
+      if (/^(?:[a-z][a-z\d+.-]*:|#)/i.test(href)) continue;
       assert((await stat(resolve(site, dirname(source), href.split("#")[0]))).isFile());
     }
   }

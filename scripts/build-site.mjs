@@ -13,6 +13,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
+import { parseRecommendations } from "./recommendations.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = resolve(root, "dist/site");
@@ -225,36 +226,14 @@ function sidebar(current) {
     (current.startsWith("recommendations/") ? "권장 모음" : "서고");
   return `<aside class="sidebar"><details open data-document-menu><summary>차례<span class="sidebar-current">${currentLabel}</span></summary><nav aria-label="차례">${sections.map(([name, entries]) => `<div class="sidebar-group"><p>${name}</p>${entries.map(([target, label]) => navigationLink(current, target, label)).join("")}</div>`).join("")}</nav></details></aside>`;
 }
-const recommendations = recPaths
-  .map((source) => {
-    const content = sources.get(source);
-    const approved = content.match(
-      /^- 승인(?:자·승인일)?: [^\n]+, (\d{4}-\d{2}-\d{2})\.?$/m,
-    )?.[1];
-    if (
-      !approved ||
-      !Number.isFinite(Date.parse(approved)) ||
-      new Date(approved).toISOString().slice(0, 10) !== approved
-    ) {
-      throw new Error(
-        `${source}: 승인 기록에 유효한 YYYY-MM-DD 날짜가 필요합니다.`,
-      );
-    }
-    return {
-      source,
-      title: titleOf(source),
-      pn: content.match(/Pn: \[(P[1-5])/)[1],
-      text: content.match(/## 권장\s+([^\n]+)/)[1],
-      approved,
-      number: Number(posix.basename(source).match(/^\d+/)[0]),
-    };
-  })
-  .sort((a, b) => b.approved.localeCompare(a.approved) || b.number - a.number);
-function recList(from) {
-  return recommendations
+const recommendations = parseRecommendations(sources);
+const currentRecommendations = recommendations.filter((rec) => rec.effect === "현행");
+const archivedRecommendations = recommendations.filter((rec) => rec.effect !== "현행");
+function recList(from, entries = currentRecommendations) {
+  return entries
     .map(
       (rec) =>
-        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="recommendation-number">${String(rec.number).padStart(3, "0")}</span><div class="recommendation-content"><div class="recommendation-meta"><span class="pn-code" title="${escape(pnLabels.get(rec.pn))}">${rec.pn}</span><span>승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></span></div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">→</span></a>`,
+        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="recommendation-number">${String(rec.number).padStart(3, "0")}</span><div class="recommendation-content"><div class="recommendation-meta"><span class="pn-code" title="${escape(pnLabels.get(rec.pn))}">${rec.pn}</span><span>승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></span>${rec.effect !== "현행" ? `<span>${rec.effect}</span>` : ""}</div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">→</span></a>`,
     )
     .join("");
 }
@@ -319,7 +298,7 @@ await writeFile(
   resolve(output, "index.html"),
   layout("index.html", "Compass Propaganda", home),
 );
-const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / ${recommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}</article></main>`;
+const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / 현행 ${currentRecommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}${archivedRecommendations.length ? `<section class="prose"><h2>철회·대체된 권장</h2><p>아래 권장은 현재 적용하지 않습니다.</p></section>${recList("recommendations/index.html", archivedRecommendations)}` : ""}</article></main>`;
 await writeFile(
   resolve(output, "recommendations/index.html"),
   layout("recommendations/index.html", "권장", recPage),
@@ -330,13 +309,14 @@ for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
 }
 const recIndex = `# 권장 원문 인덱스
 
-공식 저장소에서 생성한 권장 목록입니다. 후보를 찾은 뒤 원문 전체를 읽고 승인·적용 조건·예외·수정 및 철회 여부를 확인합니다. 목록의 요지만으로 권장을 적용하지 않습니다.
+공식 저장소에서 생성한 권장 목록입니다. 현행 권장만 적용하며, 대체된 권장은 연결된 후속 권장을 읽고 그 효력과 조건을 확인합니다. 철회된 권장은 적용하지 않습니다. 후보를 찾은 뒤 원문 전체를 읽고 승인·적용 조건·예외를 확인합니다. 목록의 요지만으로 권장을 적용하지 않습니다.
 
 빌드 기준 커밋: [${revision}](${repository}/tree/${revision})
 원문은 아래 Markdown 주소에서 직접 읽습니다. 접근할 수 없으면 HTML 또는 저장소 원문을 읽습니다. 각 SHA-256은 배포된 Markdown 파일의 내용을 식별하며, 오라클 문서 묶음 식별자와는 별개입니다.
 
 ${recommendations.map((rec) => `## ${String(rec.number).padStart(3, "0")}. ${rec.title}
 
+- 효력: ${rec.effect}${rec.replacement ? `\n- [대체 권장](${publicSite}${rec.replacement})` : ""}
 - 반영 요청: ${rec.pn} — ${pnLabels.get(rec.pn)}
 - 승인일: ${rec.approved}
 - 권장 요지: ${rec.text}
