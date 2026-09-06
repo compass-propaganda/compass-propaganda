@@ -15,11 +15,16 @@ import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import { parseRecommendations } from "./recommendations.mjs";
 import { renderOracleSetup } from "./setup-oracle.mjs";
+import { parseBulletins, renderFeed } from "./bulletins.mjs";
+import { validateIntegrations, renderFeedback, renderVoteSummary, renderSubscription } from "./participation.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = resolve(root, "dist/site");
 const repository = "https://github.com/compass-propaganda/compass-propaganda";
 const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
+const integrations = JSON.parse(await readFile(resolve(root, "site/integrations.json"), "utf8"));
+if (process.env.FEEDBACK_URL !== undefined) integrations.feedback_url = process.env.FEEDBACK_URL;
+validateIntegrations(integrations, Boolean(process.env.FEEDBACK_URL) && !process.env.GITHUB_ACTIONS);
 const groups = [
   [
     "입문과 교리",
@@ -57,6 +62,12 @@ const recPaths = (await readdir(resolve(root, "recommendations")))
   .sort()
   .map((path) => `recommendations/${path}`);
 documents.push(...recPaths);
+const bulletinPaths = (await readdir(resolve(root, "bulletins")))
+  .filter((path) => /^\d+[^/]*\.md$/.test(path))
+  .map((path) => `bulletins/${path}`);
+const bulletins = parseBulletins(new Map(await Promise.all(bulletinPaths.map(async (path) => [path, await readFile(resolve(root, path), "utf8")]))));
+documents.push(...bulletins.map((entry) => entry.source));
+const bulletinsBySource = new Map(bulletins.map((entry) => [entry.source, entry]));
 const sources = new Map(
   await Promise.all(
     documents.map(async (path) => [
@@ -163,12 +174,12 @@ markdown.renderer.rules.heading_close = (tokens, idx, options, env, self) => {
     const target = recommendationsBySource.get(rec.replacement);
     fields.push(["대체 권장", `<a href="${escape(relative(env.output, htmlPath(target.source)))}">${escape(target.title)}</a>`]);
   }
-  return `${heading}<div class="recommendation-metadata"><p class="pn-metadata"><a class="pn-badge" href="${href}"><span class="pn-code">${rec.pn}</span><span class="pn-caption"><span class="pn-label">반영 요청</span><span>${escape(pnLabels.get(rec.pn))}</span></span><span class="pn-link" aria-hidden="true">→</span></a></p><dl>${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}</dl></div>\n`;
+  return `${heading}<div class="recommendation-metadata"><div class="recommendation-actions"><a class="pn-badge" href="${href}"><span class="pn-code">${rec.pn}</span><span class="pn-caption"><span class="pn-label">반영 요청</span><span>${escape(pnLabels.get(rec.pn))}</span></span><span class="pn-link" aria-hidden="true">→</span></a>${renderFeedback(rec, sources.get(env.source), integrations.feedback_url, escape)}</div><dl>${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}</dl></div>\n`;
 };
 markdown.renderer.rules.table_open = () =>
   '<div class="table-scroll" tabindex="0" role="region" aria-label="비교 표"><table>\n';
 markdown.renderer.rules.table_close = () => "</table></div>\n";
-const render = (source, text = recommendationsBySource.get(source)?.body ?? sources.get(source)) => {
+const render = (source, text = recommendationsBySource.get(source)?.body ?? bulletinsBySource.get(source)?.body ?? sources.get(source)) => {
   const body = markdown.render(text, { source, output: htmlPath(source) });
   const rec = recommendationsBySource.get(source);
   if (!rec) return body;
@@ -180,6 +191,7 @@ const render = (source, text = recommendationsBySource.get(source)?.body ?? sour
 };
 const titleOf = (source) => recommendationsBySource.get(source)?.title ?? sources.get(source).match(/^# (.+)$/m)[1];
 function descriptionOf(source) {
+  if (bulletinsBySource.has(source)) return bulletinsBySource.get(source).summary;
   if (source === "PRINCIPLES.md") return purpose;
   if (source === "TERMINOLOGY.md")
     return "불꽃과 해방, 권장과 오라클, 정경과 정본 등 Compass Propaganda의 개념과 규범 표현을 설명합니다.";
@@ -203,8 +215,8 @@ function navigationLink(current, target, label) {
   const active =
     current === target
       ? "page"
-      : target === "recommendations/index.html" &&
-          current.startsWith("recommendations/")
+      : ["recommendations/index.html", "bulletins/index.html"].includes(target) &&
+          current.startsWith(target.replace("index.html", ""))
         ? "location"
         : null;
   return `<a href="${relative(current, target)}"${active ? ` aria-current="${active}"` : ""}>${label}</a>`;
@@ -221,6 +233,7 @@ function layout(path, title, body, description = purpose) {
 <title>${escape(pageTitle)}</title>
 <meta name="description" content="${escape(description)}">
 <link rel="canonical" href="${escape(canonical)}">
+<link rel="alternate" type="application/rss+xml" title="Compass Propaganda 주보" href="${href("feed.xml")}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Compass Propaganda">
 <meta property="og:locale" content="ko_KR">
@@ -240,12 +253,14 @@ function layout(path, title, body, description = purpose) {
 <meta name="theme-color" content="#fafaf7">
 <link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml">
 <link rel="stylesheet" href="${href("assets/style.css")}">
+<link rel="stylesheet" href="${href("assets/participation.css")}">
+${integrations.feedback_url && (path === "index.html" || path.startsWith("recommendations/")) ? `<script src="${href("assets/feedback.js")}" defer></script>` : ""}
 ${path === "setup-oracle.html" ? `<link rel="stylesheet" href="${href("assets/setup-oracle.css")}"><script src="${href("assets/setup-oracle.js")}" defer></script>` : ""}
 <script src="${href("assets/client.js")}" defer></script></head>
 <body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell">
 <header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "setup-oracle.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
 ${body}
-<footer class="footer"><a class="footer-brand" href="${href("index.html")}">compass<br>propaganda<span>컴퍼스 프로파간다</span></a><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div><a class="edition" href="${repository}/tree/${revision}"><span>원문 판본</span><span>${revision.slice(0, 7)} ↗</span></a></footer></div></body></html>`;
+<footer class="footer"><a class="footer-brand" href="${href("index.html")}">compass<br>propaganda<span>컴퍼스 프로파간다</span></a><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("bulletins/index.html")}">주보</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div><a class="edition" href="${repository}/tree/${revision}"><span>원문 판본</span><span>${revision.slice(0, 7)} ↗</span></a></footer></div></body></html>`;
 }
 function sidebar(current) {
   const sections = [
@@ -257,6 +272,7 @@ function sidebar(current) {
       "권장과 자료",
       [
         ["recommendations/index.html", "권장 모음"],
+        ["bulletins/index.html", "주보"],
         ["setup-oracle.html", "오라클에 자문 구하기"],
         ["PLAN.html", "설계 계획"],
         ["LICENSE.html", "라이선스"],
@@ -276,12 +292,13 @@ function recList(from, entries = currentRecommendations) {
   return entries
     .map(
       (rec) =>
-        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="recommendation-number">${String(rec.number).padStart(3, "0")}</span><div class="recommendation-content"><div class="recommendation-meta"><span class="pn-code" title="${escape(pnLabels.get(rec.pn))}">${rec.pn}</span><span>승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></span>${rec.effect !== "현행" ? `<span>${rec.effect}</span>` : ""}</div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">→</span></a>`,
+        `<a class="recommendation" href="${relative(from, htmlPath(rec.source))}"><span class="recommendation-number">${String(rec.number).padStart(3, "0")}</span><div class="recommendation-content"><div class="recommendation-meta"><span class="pn-code" title="${escape(pnLabels.get(rec.pn))}">${rec.pn}</span><span>승인 <time datetime="${rec.approved}">${rec.approved.replaceAll("-", ".")}</time></span>${rec.effect !== "현행" ? `<span>${rec.effect}</span>` : ""}${renderVoteSummary(rec, integrations.feedback_url, escape)}</div><h3>${escape(rec.title)}</h3><p>${escape(rec.text)}</p></div><span class="arrow" aria-hidden="true">→</span></a>`,
     )
     .join("");
 }
 function furtherReading(current) {
   const routes = {
+    "bulletins/index.html": ["recommendations/index.html", "ONBOARDING.html"],
     "ONBOARDING.html": ["PRINCIPLES.html", "setup-oracle.html"],
     "PRINCIPLES.html": ["recommendations/index.html", "APPROACH.html"],
     "TERMINOLOGY.html": ["PRINCIPLES.html", "recommendations/index.html"],
@@ -294,6 +311,7 @@ function furtherReading(current) {
     "setup-oracle.html": ["ONBOARDING.html", "recommendations/index.html"],
   };
   let targets = routes[current];
+  if (current.startsWith("bulletins/") && !targets) targets = ["bulletins/index.html", "recommendations/index.html"];
   if (!targets && recommendationsBySource.has(current.replace(/\.html$/, ".md"))) {
     const index = currentRecommendations.findIndex((rec) => htmlPath(rec.source) === current);
     const next = currentRecommendations[index + 1] || currentRecommendations[0];
@@ -305,7 +323,7 @@ function furtherReading(current) {
     const next = entries[index + 1] || entries[0];
     targets = [next ? htmlPath(next[0]) : "ONBOARDING.html", "index.html"];
   }
-  const labels = { "index.html": "서고", "setup-oracle.html": "오라클에 자문 구하기", "recommendations/index.html": "권장 모음" };
+  const labels = { "index.html": "서고", "setup-oracle.html": "오라클에 자문 구하기", "recommendations/index.html": "권장 모음", "bulletins/index.html": "주보" };
   const links = targets.filter((target) => target && target !== current).map((target) => {
     const label = labels[target] || titleOf(target.replace(/\.html$/, ".md"));
     return `<a href="${relative(current, target)}"><span>${escape(label)}</span><span aria-hidden="true">→</span></a>`;
@@ -315,7 +333,7 @@ function furtherReading(current) {
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
 await mkdir(resolve(output, "setup-oracle"), { recursive: true });
-for (const file of ["style.css", "client.js", "setup-oracle.css", "setup-oracle.js", "symbol.svg", "flame.png", "social.png"])
+for (const file of ["style.css", "client.js", "setup-oracle.css", "setup-oracle.js", "participation.css", "feedback.js", "symbol.svg", "flame.png", "social.png"])
   await copyFile(resolve(root, "site", file), resolve(output, "assets", file));
 await mkdir(resolve(output, "assets/brands"), { recursive: true });
 for (const file of await readdir(resolve(root, "site/brands"))) {
@@ -349,12 +367,13 @@ for (const source of documents) {
   const title = titleOf(source);
   await mkdir(dirname(resolve(output, path)), { recursive: true });
   const rec = recommendationsBySource.get(source);
+  const bulletin = bulletinsBySource.get(source);
   const category = rec
     ? `권장 / ${String(rec.number).padStart(3, "0")}`
-    : groups.find(([, entries]) =>
+    : bulletin ? `주보 / ${String(bulletin.number).padStart(3, "0")}` : groups.find(([, entries]) =>
         entries.some(([path]) => path === source),
       )?.[0] || "서고";
-  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div>${furtherReading(path)}</article></main>`;
+  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : bulletin ? `<time datetime="${bulletin.published}">${bulletin.published.slice(0, 10).replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div>${furtherReading(path)}</article></main>`;
   const description = rec
     ? `${rec.effect !== "현행" ? `${rec.effect}된 권장. ` : ""}${rec.text}`
     : descriptionOf(source);
@@ -375,6 +394,7 @@ const home = `<main id="main" class="home">
 <a class="route" href="GOVERNANCE.html"><h3>운영과 참여</h3><p>권장의 승인과 발행, 제안과 수정</p><span class="arrow" aria-hidden="true">→</span></a></div></section>
 <section class="section"><div class="section-label"><h2>권장</h2><a class="text-link" href="recommendations/index.html">권장 모음 <span aria-hidden="true">→</span></a></div>${recList("index.html")}</section>
 <section class="section oracle-section"><h2>오라클</h2><div><p>자신의 AI에서 오라클과 대화하며 일상의 선택에 대해 자문을 구합니다. AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p><a class="text-link" href="setup-oracle.html">오라클에 자문 구하기 <span aria-hidden="true">→</span></a></div></section>
+${renderSubscription(integrations.follow_it_action, escape)}
 </main>`;
 await writeFile(
   resolve(output, "index.html"),
@@ -429,4 +449,9 @@ await writeFile(
   layout("downloads.html", "오라클에 자문 구하기", '<main id="main" class="prose"><h1>오라클에 자문 구하기</h1><p><a href="setup-oracle.html">오라클 설치·사용 안내로 이동하기 →</a></p></main>', "오라클 설치·사용 안내가 새 주소로 이동했습니다.")
     .replace("</head>", '<script>location.replace("setup-oracle.html" + location.hash)</script><noscript><meta http-equiv="refresh" content="0; url=setup-oracle.html"></noscript></head>'),
 );
-console.log(`Built ${documents.length + 4} pages and oracle setup artifacts in ${output}`);
+await mkdir(resolve(output, "bulletins"), { recursive: true });
+const bulletinList = bulletins.map((entry) => `<a class="recommendation" href="${relative("bulletins/index.html", htmlPath(entry.source))}"><span class="recommendation-number">${String(entry.number).padStart(3, "0")}</span><div class="recommendation-content"><time datetime="${entry.published}">${entry.published.slice(0, 10).replaceAll("-", ".")}</time><h2>${escape(entry.title)}</h2><p>${escape(entry.summary)}</p></div><span aria-hidden="true">→</span></a>`).join("");
+const bulletinPage = `<main id="main" class="document-layout">${sidebar("bulletins/index.html")}<article class="article"><div class="prose"><h1>주보</h1><p>권장과 변경 사항, 교단의 소식을 전합니다.</p><p><a href="../feed.xml">RSS로 구독하기 →</a></p>${bulletins.length ? "" : "<p>첫 주보를 준비하고 있습니다.</p>"}</div>${renderSubscription(integrations.follow_it_action, escape)}${bulletinList}${furtherReading("bulletins/index.html")}</article></main>`;
+await writeFile(resolve(output, "bulletins/index.html"), layout("bulletins/index.html", "주보", bulletinPage, "권장과 변경 사항, 교단의 소식을 전합니다."));
+await writeFile(resolve(output, "feed.xml"), renderFeed(bulletins, publicSite));
+console.log(`Built ${documents.length + 5} pages and oracle setup artifacts in ${output}`);

@@ -42,3 +42,9 @@ JS
 `scripts/setup-oracle.mjs`가 서비스별 시작 방법을 표시합니다. 설치·시작·프로젝트 지침은 `oracle/prompts/`의 Markdown 원문을 읽으며, 원문의 역할은 [참조 구현 안내](../oracle/README.md#프롬프트-원문)에 정리합니다. 설치 요청 원문은 `setup-oracle/install.md`로도 공개합니다. `site/setup-oracle.js`가 서비스 선택과 키보드 탐색을 제공하며, JavaScript가 없으면 모든 안내를 순서대로 읽을 수 있습니다. 파일 다운로드는 스크립트 없이도 동작합니다.
 
 일반 채팅의 복사문은 생성된 `dist/oracle.md` 전체에 시작 지침을 덧붙입니다. 별도 요약본을 유지하지 않으며, 상황 입력용 placeholder를 넣지 않습니다. 서비스 기능·설치 화면은 각 안내에 연결한 공식 문서를 기준으로 확인합니다. 프로젝트·Gem에 파일을 저장하는 것과 자문에서 공개 권장 원문을 조회하는 것은 별도로 검증합니다. 아이콘의 출처와 조건은 `site/brands/README.md`에 기록합니다.
+
+## 주보와 참여
+
+`scripts/bulletins.mjs`가 [주보 원문](../bulletins/README.md) 중 발행한 글만 사이트와 `feed.xml`에 반영합니다. 일반 문서의 수정은 새 RSS 항목을 만들지 않습니다. 이메일 구독은 공개 RSS를 follow.it에 등록한 뒤, 제공받은 가입 폼 주소를 `site/integrations.json`의 `follow_it_action`에 설정하여 연결합니다. 서비스가 제공한 폼의 필드도 `scripts/participation.mjs`와 대조합니다. 미설정 상태에서는 이메일 가입 폼을 표시하지 않습니다.
+
+`feedback_url`에는 [권장 반응 API](../feedback/README.md)의 HTTPS origin을 설정합니다. 원문 해시와 번호는 사이트와 Worker가 같은 권장 파일에서 생성합니다. `site/feedback.js`가 반응 변경·취소와 메모 제출을 처리하며, 메모는 사이트 생성물에 포함하지 않습니다. `FEEDBACK_URL` 환경 변수는 로컬 연결을 확인할 때 설정 파일 대신 사용할 수 있습니다.

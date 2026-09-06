@@ -1,0 +1,117 @@
+/* SPDX-License-Identifier: MIT */
+.subscription {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--line);
+  line-height: 1.65;
+}
+.subscription h2 { margin: 0 0 1rem; font-size: 1.2rem; }
+.subscription p { margin: 0.75rem 0; }
+.feedback-buttons,
+.subscription-fields { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.feedback button,
+.subscription button {
+  min-height: 48px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+}
+.recommendation-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 20px;
+  margin: -12px 0 32px;
+}
+.recommendation-actions > .pn-badge { justify-self: start; }
+.feedback { display: contents; }
+.feedback-buttons { grid-column: 2; grid-row: 1; flex-wrap: nowrap; gap: 4px; }
+.feedback-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  min-width: 48px;
+  min-height: 44px;
+  border-color: transparent;
+  line-height: 1.4;
+}
+.feedback-buttons [data-count] { min-width: 1.25em; font-variant-numeric: tabular-nums; }
+.feedback-buttons button:hover { border-color: var(--line); }
+.feedback-buttons button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.feedback button:disabled { cursor: wait; opacity: 0.5; }
+.feedback [role="status"] { grid-column: 1 / -1; margin: 0; }
+.feedback [role="status"]:empty { display: none; }
+.feedback-composer {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.feedback-composer[hidden] { display: none; }
+.feedback-composer:focus-within { border-color: var(--accent); }
+.feedback-composer button {
+  align-self: stretch;
+  min-width: 80px;
+  padding: 0 16px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  white-space: nowrap;
+  color: var(--accent);
+}
+.feedback-composer button:not(:disabled):hover { background: var(--wash); }
+.feedback-composer button:focus-visible { outline-offset: -4px; }
+.feedback-composer button:disabled { cursor: default; opacity: 0.4; }
+.subscription label { display: block; margin-bottom: 0.5rem; }
+.feedback textarea,
+.subscription input {
+  display: block;
+  max-width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+.feedback textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  line-height: 1.5;
+  resize: vertical;
+}
+.feedback textarea::placeholder { color: var(--muted); opacity: 1; }
+.subscription input { min-width: 0; flex: 1 1 12rem; }
+.subscription input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.feedback textarea:focus-visible { outline: none; }
+.subscription > p:last-child { color: var(--muted); font-size: 1rem; }
+.vote-summary {
+  display: inline-flex;
+  gap: 16px;
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .recommendation-actions { column-gap: 10px; }
+  .recommendation-actions .pn-link,
+  .feedback-vote-label { display: none; }
+  .recommendation-actions .pn-code { width: 40px; }
+  .recommendation-actions .pn-caption { padding: 8px; }
+}
+@media (max-width: 480px) {
+  .recommendation-meta { flex-wrap: wrap; }
+  .recommendation-meta > span:has(time) { order: 1; flex-basis: 100%; }
+}
+@media print { .feedback, .subscription, .vote-summary { display: none; } }
