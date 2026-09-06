@@ -73,19 +73,39 @@
   font-weight: 500;
   white-space: nowrap;
 }
-.comparison td:nth-child(n + 5):nth-child(-n + 7) .comparison-value {
-  background: var(--wash);
-  color: #4d585e;
+/* Apply the same palette to enhanced buttons and native disclosure summaries.
+   No column-position selectors: their specificity used to override the colors. */
+.comparison [data-tone] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30px;
+  background: var(--comparison-tone-bg, var(--wash));
+  color: var(--comparison-tone-ink, #4d585e);
   min-height: 34px;
   padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
 }
-.comparison td:nth-child(5) .comparison-value {
-  background: #f3eee5;
-  color: #7c5c30;
+.comparison [data-tone="teal"] {
+  --comparison-tone-bg: #dcefeb;
+  --comparison-tone-ink: #245b53;
 }
-.comparison td:nth-child(6) .comparison-value {
-  background: #e9efef;
-  color: #426262;
+.comparison [data-tone="blue"] {
+  --comparison-tone-bg: #e4ebf8;
+  --comparison-tone-ink: #3d5883;
+}
+.comparison [data-tone="amber"] {
+  --comparison-tone-bg: #f5ead5;
+  --comparison-tone-ink: #785520;
+}
+.comparison [data-tone="violet"] {
+  --comparison-tone-bg: #ece5f5;
+  --comparison-tone-ink: #674884;
+}
+.comparison [data-tone="rose"] {
+  --comparison-tone-bg: #f5e3e9;
+  --comparison-tone-ink: #874b62;
 }
 .comparison-value[data-answer] {
   font-size: 23px;
@@ -101,6 +121,11 @@
 .comparison-value[aria-expanded="true"] {
   outline: 1px solid var(--line);
   outline-offset: 1px;
+}
+.comparison .comparison-value:focus-visible,
+.comparison summary[data-tone]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 .comparison thead .comparison-value {
   padding-inline: 4px;
@@ -157,6 +182,13 @@
     overflow-wrap: anywhere;
   }
 }
+@media (forced-colors: active) {
+  .comparison [data-tone] {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+}
 @media print {
   .comparison table {
     min-width: 0;
@@ -170,9 +202,15 @@
   .comparison thead th:last-child {
     width: auto;
   }
-  .comparison-value {
+  .comparison .comparison-value,
+  .comparison [data-tone] {
+    display: inline;
     min-width: 0;
+    min-height: 0;
     padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
     white-space: normal;
   }
   .comparison-popover {
