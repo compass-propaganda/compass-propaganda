@@ -359,7 +359,7 @@ const home = `<main id="main" class="home">
 <section class="section contents"><div class="section-label"><h2>서고</h2></div><div class="routes">
 <a class="route" href="ONBOARDING.html"><h3>입문 안내</h3><p>교리의 요약과 권장을 읽는 방법</p><span class="arrow" aria-hidden="true">→</span></a>
 <a class="route" href="PRINCIPLES.html"><h3>판단 원칙</h3><p>기본 교리와 공통의 판단 기준</p><span class="arrow" aria-hidden="true">→</span></a>
-<a class="route" href="APPROACH.html"><h3>과학적 접근</h3><p>근거의 검토, 결과의 예측과 검증</p><span class="arrow" aria-hidden="true">→</span></a>
+<a class="route" href="APPROACH.html"><h3>판단과 근거</h3><p>근거의 검토, 선택의 비교와 판단 기록</p><span class="arrow" aria-hidden="true">→</span></a>
 <a class="route" href="GOVERNANCE.html"><h3>운영과 참여</h3><p>권장의 승인과 발행, 제안과 수정</p><span class="arrow" aria-hidden="true">→</span></a></div></section>
 <section class="section"><div class="section-label"><h2>권장</h2><a class="text-link" href="recommendations/index.html">권장 모음 <span aria-hidden="true">→</span></a></div>${recList("index.html")}</section>
 <section class="section oracle-section"><h2>오라클</h2><div><p>자신의 AI에서 오라클과 대화하며 일상의 선택에 대해 자문을 구합니다. AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p><a class="text-link" href="setup-oracle.html">오라클에 자문 구하기 <span aria-hidden="true">→</span></a></div></section>

@@ -11,7 +11,7 @@ export const documentGroups = [
     ["TERMINOLOGY.md", "용어"],
   ]],
   ["탐구", [
-    ["APPROACH.md", "과학적 접근"],
+    ["APPROACH.md", "판단과 근거"],
     ["PROPHETS.md", "선지자들"],
     ["REFERENCES.md", "참고 자료"],
   ]],
