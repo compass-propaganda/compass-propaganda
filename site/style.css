@@ -420,6 +420,41 @@ svg {
   min-width: 0;
   max-width: 880px;
 }
+.further-reading {
+  margin-top: 64px;
+  border-top: 1px solid var(--ink);
+  padding-top: 20px;
+}
+.further-reading h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.further-reading > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+}
+.further-reading a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 64px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 20px;
+  line-height: 1.5;
+  word-break: keep-all;
+  text-decoration: none;
+}
+.further-reading a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.further-reading a > span:last-child {
+  flex-shrink: 0;
+}
 .article-meta {
   display: flex;
   gap: 16px;
@@ -798,6 +833,9 @@ details.recommendation-metadata > dl {
   }
 }
 @media (max-width: 760px) {
+  .further-reading > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .shell {
     padding: 0 22px;
   }
@@ -1043,6 +1081,7 @@ details.recommendation-metadata > dl {
   }
   .header nav,
   .sidebar,
+  .further-reading,
   .copy-bar,
   .footer-links,
   .skip {

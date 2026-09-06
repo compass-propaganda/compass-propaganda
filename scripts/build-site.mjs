@@ -292,6 +292,40 @@ function recList(from, entries = currentRecommendations) {
     )
     .join("");
 }
+function furtherReading(current) {
+  const routes = {
+    "ONBOARDING.html": ["PRINCIPLES.html", "downloads.html"],
+    "PRINCIPLES.html": ["recommendations/index.html", "APPROACH.html"],
+    "TERMINOLOGY.html": ["PRINCIPLES.html", "recommendations/index.html"],
+    "AI.html": ["ORACLE.html", "GOVERNANCE.html"],
+    "ORACLE.html": ["downloads.html", "oracle/README.html"],
+    "oracle/README.html": ["downloads.html", "ORACLE.html"],
+    "PLAN.html": ["GOVERNANCE.html", "ORACLE.html"],
+    "LICENSE.html": ["GOVERNANCE.html", "index.html"],
+    "README.html": ["ONBOARDING.html", "PRINCIPLES.html"],
+    "recommendations/TEMPLATE.html": ["GOVERNANCE.html", "recommendations/index.html"],
+    "recommendations/index.html": ["PRINCIPLES.html", "downloads.html"],
+    "downloads.html": ["ONBOARDING.html", "recommendations/index.html"],
+  };
+  let targets = routes[current];
+  if (!targets && recommendationsBySource.has(current.replace(/\.html$/, ".md"))) {
+    const index = currentRecommendations.findIndex((rec) => htmlPath(rec.source) === current);
+    const next = currentRecommendations[index + 1] || currentRecommendations[0];
+    targets = [next && htmlPath(next.source), "recommendations/index.html"];
+  }
+  if (!targets) {
+    const entries = groups.find(([, entries]) => entries.some(([source]) => htmlPath(source) === current))?.[1] || [];
+    const index = entries.findIndex(([source]) => htmlPath(source) === current);
+    const next = entries[index + 1] || entries[0];
+    targets = [next ? htmlPath(next[0]) : "ONBOARDING.html", "index.html"];
+  }
+  const labels = { "index.html": "서고", "downloads.html": "오라클 받기", "recommendations/index.html": "권장 모음" };
+  const links = targets.filter((target) => target && target !== current).map((target) => {
+    const label = labels[target] || titleOf(target.replace(/\.html$/, ".md"));
+    return `<a href="${relative(current, target)}"><span>${escape(label)}</span><span aria-hidden="true">→</span></a>`;
+  }).join("");
+  return `<nav class="further-reading" aria-labelledby="further-reading-title"><h2 id="further-reading-title">더 알아보기</h2><div>${links}</div></nav>`;
+}
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
 await mkdir(resolve(output, "downloads"), { recursive: true });
@@ -330,7 +364,7 @@ for (const source of documents) {
     : groups.find(([, entries]) =>
         entries.some(([path]) => path === source),
       )?.[0] || "서고";
-  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div></article></main>`;
+  const body = `<main id="main" class="document-layout">${sidebar(path)}<article class="article"><div class="article-meta"><span>${category}${rec ? `<time datetime="${rec.approved}">승인 ${rec.approved.replaceAll("-", ".")}</time>` : ""}</span><a href="${sourceUrl(source)}">원문 보기 ↗</a></div><div class="prose">${render(source)}</div>${furtherReading(path)}</article></main>`;
   const description = rec
     ? `${rec.effect !== "현행" ? `${rec.effect}된 권장. ` : ""}${rec.text}`
     : descriptionOf(source);
@@ -356,7 +390,7 @@ await writeFile(
   resolve(output, "index.html"),
   layout("index.html", "Compass Propaganda", home),
 );
-const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / 현행 ${currentRecommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}${archivedRecommendations.length ? `<section class="prose"><h2>철회·대체된 권장</h2><p>아래 권장은 현재 적용하지 않습니다.</p></section>${recList("recommendations/index.html", archivedRecommendations)}` : ""}</article></main>`;
+const recPage = `<main id="main" class="document-layout">${sidebar("recommendations/index.html")}<article class="article"><div class="article-meta"><span>권장 모음 / 현행 ${currentRecommendations.length}편</span><span>승인일 최신순</span></div><div class="prose"><h1>권장</h1><p>자신에게 해당하는 권장과 적용 조건을 읽습니다. 이유가 궁금하면 판단 기록과 출처를 살펴볼 수 있습니다.</p></div><div class="list-note"><span>Pn은 반영을 요청하는 강도입니다.</span><a href="../TERMINOLOGY.html#pn-룰">Pn 룰 읽기 →</a></div>${recList("recommendations/index.html")}${archivedRecommendations.length ? `<section class="prose"><h2>철회·대체된 권장</h2><p>아래 권장은 현재 적용하지 않습니다.</p></section>${recList("recommendations/index.html", archivedRecommendations)}` : ""}${furtherReading("recommendations/index.html")}</article></main>`;
 await writeFile(
   resolve(output, "recommendations/index.html"),
   layout("recommendations/index.html", "권장", recPage, "중앙이 승인한 권장과 적용 조건을 읽습니다. 반영 요청의 강도와 판단 이유, 출처를 함께 살펴볼 수 있습니다."),
@@ -395,7 +429,7 @@ const bundle = (await readFile(resolve(root, "dist/oracle.md"), "utf8")).match(
 const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="article-meta"><span>참조 구현 / 다운로드</span><a href="oracle/README.html">구성·설치 안내 ↗</a></div><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p>
 <section class="installation"><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사 <span aria-hidden="true">⧉</span></button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></section></div>
 <div class="download-grid"><section class="download-card"><span class="file-format" aria-hidden="true">MD</span><div><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p></div><a class="button" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><span class="file-format" aria-hidden="true">ZIP</span><div><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p></div><a class="button" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div>
-<p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details></article></main>`;
+<p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details>${furtherReading("downloads.html")}</article></main>`;
 await writeFile(
   resolve(output, "downloads.html"),
   layout("downloads.html", "오라클 받기", downloads, "Compass Propaganda의 기본 교리와 판단 원칙을 자신의 AI에서 사용하는 오라클 프롬프트와 Agent Skill을 받습니다."),
