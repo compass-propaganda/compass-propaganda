@@ -257,6 +257,7 @@ ${integrations.follow_it_verification ? `<meta name="follow.it-verification-code
 <link rel="stylesheet" href="${href("assets/participation.css")}">
 ${integrations.feedback_url && (path === "index.html" || path.startsWith("recommendations/")) ? `<script src="${href("assets/feedback.js")}" defer></script>` : ""}
 ${path === "setup-oracle.html" ? `<link rel="stylesheet" href="${href("assets/setup-oracle.css")}"><script src="${href("assets/setup-oracle.js")}" defer></script>` : ""}
+${path === "REFERENCES.html" ? `<link rel="stylesheet" href="${href("assets/comparison.css")}"><script src="${href("assets/comparison.js")}" defer></script>` : ""}
 <script src="${href("assets/client.js")}" defer></script></head>
 <body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell">
 <header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "setup-oracle.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
@@ -334,7 +335,7 @@ function furtherReading(current) {
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
 await mkdir(resolve(output, "setup-oracle"), { recursive: true });
-for (const file of ["style.css", "client.js", "setup-oracle.css", "setup-oracle.js", "participation.css", "feedback.js", "symbol.svg", "flame.png", "social.png"])
+for (const file of ["style.css", "client.js", "setup-oracle.css", "setup-oracle.js", "comparison.css", "comparison.js", "participation.css", "feedback.js", "symbol.svg", "flame.png", "social.png"])
   await copyFile(resolve(root, "site", file), resolve(output, "assets", file));
 await mkdir(resolve(output, "assets/brands"), { recursive: true });
 for (const file of await readdir(resolve(root, "site/brands"))) {
