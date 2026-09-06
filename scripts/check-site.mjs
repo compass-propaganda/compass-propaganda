@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { parseRecommendations } from "./recommendations.mjs";
+import { parseBulletins } from "./bulletins.mjs";
+import { publicDocuments, checkRecommendationLinks } from "./site-documents.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const site = join(root, "dist/site");
@@ -20,6 +22,11 @@ async function htmlFiles(directory) {
   return result;
 }
 const pages = await htmlFiles(site);
+for (const source of ["PLAN.md", "recommendations/TEMPLATE.md", "ORACLE.md", "AGENTS.md", "oracle/README.md"]) {
+  for (const path of [source, source.replace(/\.md$/, ".html")]) {
+    await assert.rejects(stat(join(site, path)), { code: "ENOENT" }, `Internal document was published: ${path}`);
+  }
+}
 const terminology = await readFile(join(root, "TERMINOLOGY.md"), "utf8");
 const recPaths = (await readdir(join(root, "recommendations")))
   .filter((name) => /^\d+.*\.md$/.test(name))
@@ -147,7 +154,14 @@ const indexedPaths = [...index.matchAll(/\[Markdown 원문\]\(([^)]+)\)/g)]
     return url.slice(publicSite.length);
   });
 assert.deepEqual([...indexedPaths].sort(), recPaths, "Recommendation index is incomplete or duplicated");
-for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
+const bulletinPaths = (await readdir(join(root, "bulletins")))
+  .filter((name) => /^\d+[^/]*\.md$/.test(name))
+  .map((name) => `bulletins/${name}`);
+const bulletins = parseBulletins(new Map(await Promise.all(
+  bulletinPaths.map(async (path) => [path, await readFile(join(root, path), "utf8")]),
+)));
+const sourcePaths = [...publicDocuments, ...recPaths, ...bulletins.map((entry) => entry.source)];
+for (const source of sourcePaths) {
   const original = await readFile(join(root, source));
   assert.deepEqual(await readFile(join(site, source)), original, `Altered source: ${source}`);
   if (recPaths.includes(source)) {
@@ -163,11 +177,7 @@ for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
     if (rec.replacement) {
       assert(entry.includes(`[대체 권장](${publicSite}${rec.replacement})`), `Wrong replacement: ${source}`);
     }
-    // Raw recommendation links must still reach their shared criteria.
-    for (const [, href] of original.toString().matchAll(/\]\(([^)]+)\)/g)) {
-      if (/^(?:[a-z][a-z\d+.-]*:|#)/i.test(href)) continue;
-      assert((await stat(resolve(site, dirname(source), href.split("#")[0]))).isFile());
-    }
+    await checkRecommendationLinks(site, source, original);
   }
 }
 for (const [, url] of index.matchAll(/\]\(([^)]+)\)/g)) {
@@ -204,5 +214,5 @@ assert.equal(
   await readFile(join(root, "oracle/SKILL.md"), "utf8"),
 );
 console.log(
-  `Verified ${pages.length} HTML pages, ${links} local links, ${recPaths.length} indexed recommendation sources, and oracle setup artifacts.`,
+  `Verified ${pages.length} HTML pages, ${links} local links, ${sourcePaths.length} published Markdown sources, ${recPaths.length} indexed recommendations, and oracle setup artifacts.`,
 );

@@ -15,12 +15,16 @@ async function fixture(t) {
   const manifest = {
     instructions: 'oracle/PROMPT.md',
     skill: 'oracle/SKILL.md',
-    documents: [{ path: 'PRINCIPLES.md', role: 'principles' }],
+    documents: [
+      { path: 'PRINCIPLES.md', role: 'principles' },
+      { path: 'ORACLE.md', role: 'execution' },
+    ],
   };
   await writeFile(join(root, 'oracle/manifest.json'), JSON.stringify(manifest));
   await writeFile(join(root, 'oracle/PROMPT.md'), '# Instructions\nRead the supplied principles.\n');
   await writeFile(join(root, 'oracle/SKILL.md'), '---\nname: compass-propaganda\ndescription: Apply the oracle.\n---\nRead references/oracle.md.\n');
   await writeFile(join(root, 'PRINCIPLES.md'), '# Principles\nConsider the cost of acting.\n');
+  await writeFile(join(root, 'ORACLE.md'), '# Execution\nApply the verified recommendation within its scope.\n');
   return {
     root,
     manifest,
@@ -119,4 +123,36 @@ test('rejects unknown document roles and duplicate sources', async (t) => {
   f.manifest.documents.push({ ...f.manifest.documents[0] });
   await writeFile(join(f.root, 'oracle/manifest.json'), JSON.stringify(f.manifest));
   assert.equal(f.run().status, 1);
+});
+
+test('canonical execution rules are included verbatim once and invalidate the generated bundle', async (t) => {
+  const f = await fixture(t);
+  assert.equal(f.run().status, 0);
+  const original = await f.output();
+  const rules = await readFile(join(f.root, 'ORACLE.md'), 'utf8');
+  assert.equal(original.split(rules).length - 1, 1);
+  assert.match(original, /문서: "ORACLE.md"\n역할: execution/);
+  const revised = '# Execution\nAn updated rule from the canonical source.\n';
+  await writeFile(join(f.root, 'ORACLE.md'), revised);
+  assert.equal(f.run('--check').status, 1);
+  assert.equal(f.run().status, 0);
+  const updated = await f.output();
+  assert(updated.includes(revised));
+  assert(!updated.includes(rules));
+  assert.equal(await readFile(join(f.root, 'dist/compass-propaganda/references/oracle.md'), 'utf8'), updated);
+});
+
+test('missing or multiple execution sources cannot silently produce an incomplete oracle', async (t) => {
+  const f = await fixture(t);
+  assert.equal(f.run().status, 0);
+  const original = await f.output();
+  const execution = f.manifest.documents.pop();
+  await writeFile(join(f.root, 'oracle/manifest.json'), JSON.stringify(f.manifest));
+  assert.equal(f.run().status, 1);
+  assert.equal(await f.output(), original);
+  f.manifest.documents.push(execution, { path: 'SECOND.md', role: 'execution' });
+  await writeFile(join(f.root, 'SECOND.md'), '# Alternative execution rules\n');
+  await writeFile(join(f.root, 'oracle/manifest.json'), JSON.stringify(f.manifest));
+  assert.equal(f.run().status, 1);
+  assert.equal(await f.output(), original);
 });

@@ -6,7 +6,7 @@
 
 에이전트에게 설치를 맡기려면 [설치 요청](https://compass-propaganda.github.io/compass-propaganda/setup-oracle/install.md)을 사용합니다.
 
-직접 준비할 때는 저장소 루트에서 다음 명령을 실행합니다. [실행 지침](PROMPT.md), 판단 원칙과 용어가 하나의 프롬프트로 묶이고, [skill 진입점](SKILL.md)과 같은 공통 문서를 포함한 Agent Skills 형식의 배포본도 생성됩니다.[^skills] Node.js 20 이상을 사용하며 별도 패키지 설치는 필요하지 않습니다.
+직접 준비할 때는 저장소 루트에서 다음 명령을 실행합니다. [역할·말투 지침](PROMPT.md), [공통 실행 규칙](../ORACLE.md), 판단 원칙과 용어가 하나의 프롬프트로 묶이고, [skill 진입점](SKILL.md)과 같은 공통 문서를 포함한 Agent Skills 형식의 배포본도 생성됩니다.[^skills] Node.js 20 이상을 사용하며 별도 패키지 설치는 필요하지 않습니다.
 
 ```sh
 node scripts/build-oracle.mjs
@@ -19,7 +19,7 @@ skill을 지원하는 AI에서는 `dist/compass-propaganda/` 폴더 전체를 �
 
 ## 프롬프트 원문
 
-프롬프트는 Markdown 원문으로 관리합니다. 실행 지침은 `PROMPT.md`, skill 진입점은 `SKILL.md`에 두고, 설치·시작용 문구는 아래 파일에서 수정합니다. `scripts/setup-oracle.mjs`는 이 문구를 사이트 화면에 배치합니다.
+실행 규칙은 `ORACLE.md` 한 곳에서 관리하며 생성 도구가 그 원문을 `execution` 역할로 직접 동봉합니다. `PROMPT.md`는 역할·말투와 문서의 역할 연결을, `SKILL.md`는 문서 묶음을 읽는 진입점을 맡습니다. 실행 규칙을 이 두 파일에 다시 작성하지 않습니다. 설치·시작용 문구는 아래 파일에서 수정합니다. `scripts/setup-oracle.mjs`는 이 문구를 사이트 화면에 배치합니다.
 
 | 원문 | 용도 |
 | --- | --- |

@@ -14,6 +14,7 @@ import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import { parseRecommendations } from "./recommendations.mjs";
+import { documentGroups as groups, publicDocuments, writeMarkdownSources } from "./site-documents.mjs";
 import { renderOracleSetup } from "./setup-oracle.mjs";
 import { parseBulletins, renderFeed } from "./bulletins.mjs";
 import { validateIntegrations, renderFeedback, renderVoteSummary, renderSubscription } from "./participation.mjs";
@@ -25,38 +26,7 @@ const publicSite = "https://compass-propaganda.github.io/compass-propaganda/";
 const integrations = JSON.parse(await readFile(resolve(root, "site/integrations.json"), "utf8"));
 if (process.env.FEEDBACK_URL !== undefined) integrations.feedback_url = process.env.FEEDBACK_URL;
 validateIntegrations(integrations, Boolean(process.env.FEEDBACK_URL) && !process.env.GITHUB_ACTIONS);
-const groups = [
-  [
-    "입문과 교리",
-    [
-      ["ONBOARDING.md", "입문 안내"],
-      ["PRINCIPLES.md", "판단 원칙"],
-      ["TERMINOLOGY.md", "용어"],
-    ],
-  ],
-  [
-    "탐구",
-    [
-      ["APPROACH.md", "과학적 접근"],
-      ["PROPHETS.md", "선지자들"],
-      ["REFERENCES.md", "참고 자료"],
-    ],
-  ],
-  [
-    "운영",
-    [
-      ["GOVERNANCE.md", "운영과 참여"],
-      ["AI.md", "AI 활용"],
-    ],
-  ],
-];
-const documents = [
-  ...groups.flatMap(([, entries]) => entries.map(([path]) => path)),
-  "README.md",
-  "LICENSE.md",
-  "PLAN.md",
-  "recommendations/TEMPLATE.md",
-];
+const documents = [...publicDocuments];
 const recPaths = (await readdir(resolve(root, "recommendations")))
   .filter((path) => /^\d+.*\.md$/.test(path))
   .sort()
@@ -276,7 +246,6 @@ function sidebar(current) {
         ["recommendations/index.html", "권장 모음"],
         ["bulletins/index.html", "주보"],
         ["setup-oracle.html", "오라클에 자문 구하기"],
-        ["PLAN.html", "설계 계획"],
         ["LICENSE.html", "라이선스"],
       ],
     ],
@@ -305,10 +274,8 @@ function furtherReading(current) {
     "PRINCIPLES.html": ["recommendations/index.html", "APPROACH.html"],
     "TERMINOLOGY.html": ["PRINCIPLES.html", "recommendations/index.html"],
     "AI.html": ["setup-oracle.html", "GOVERNANCE.html"],
-    "PLAN.html": ["GOVERNANCE.html", "setup-oracle.html"],
     "LICENSE.html": ["GOVERNANCE.html", "index.html"],
     "README.html": ["ONBOARDING.html", "PRINCIPLES.html"],
-    "recommendations/TEMPLATE.html": ["GOVERNANCE.html", "recommendations/index.html"],
     "recommendations/index.html": ["PRINCIPLES.html", "setup-oracle.html"],
     "setup-oracle.html": ["ONBOARDING.html", "recommendations/index.html"],
   };
@@ -407,10 +374,8 @@ await writeFile(
   resolve(output, "recommendations/index.html"),
   layout("recommendations/index.html", "권장", recPage, "중앙이 승인한 권장과 적용 조건을 읽습니다. 반영 요청의 강도와 판단 이유, 출처를 함께 살펴볼 수 있습니다."),
 );
-// Preserve source bytes and relative links to the shared judgment criteria.
-for (const source of [...recPaths, "PRINCIPLES.md", "TERMINOLOGY.md"]) {
-  await writeFile(resolve(output, source), sources.get(source));
-}
+// Publish the same source set as HTML; recommendation hashes keep their original bytes.
+await writeMarkdownSources(output, sources);
 const recIndex = `# 권장 원문 인덱스
 
 공식 저장소에서 생성한 권장 목록입니다. 현행 권장만 적용하며, 대체된 권장은 연결된 후속 권장을 읽고 그 효력과 조건을 확인합니다. 철회된 권장은 적용하지 않습니다. 후보를 찾은 뒤 원문 전체를 읽고 승인·적용 조건·예외를 확인합니다. 목록의 요지만으로 권장을 적용하지 않습니다.

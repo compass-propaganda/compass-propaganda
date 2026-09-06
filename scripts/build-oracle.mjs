@@ -28,7 +28,7 @@ try {
   if (!Array.isArray(manifest.documents) || manifest.documents.length === 0) {
     throw new Error('The manifest must list source documents.');
   }
-  const roles = new Set(['principles', 'terminology']);
+  const roles = new Set(['execution', 'principles', 'terminology']);
   const paths = new Set([manifest.instructions, manifest.skill]);
   if (paths.size !== 2) throw new Error('Skill and execution instructions must be separate sources.');
   for (const doc of manifest.documents) {
@@ -36,6 +36,9 @@ try {
       throw new Error('Invalid document role or duplicate source.');
     }
     paths.add(doc.path);
+  }
+  if (manifest.documents.filter((doc) => doc.role === 'execution').length !== 1) {
+    throw new Error('The manifest must declare exactly one execution source.');
   }
   const sources = [];
   for (const entry of [{ path: manifest.instructions, role: 'instructions' }, ...manifest.documents]) {
