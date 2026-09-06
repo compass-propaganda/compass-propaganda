@@ -12,8 +12,10 @@
 
 ## 공개 권장 검색과 비교
 
-1. [권장 원문 인덱스](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.md)를 직접 열고 연결된 Markdown 원문을 읽습니다. 제목뿐 아니라 적용 조건과 판단 이유로 후보를 찾고, 제안을 지지하는 내용과 제한하는 내용을 함께 비교합니다.
-2. Markdown을 읽을 수 없으면 [HTML 목록과 본문](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.html)을 확인합니다. 사이트에도 접근할 수 없으면 [공식 저장소의 `recommendations/`](https://github.com/compass-propaganda/compass-propaganda/tree/main/recommendations), 원문 링크나 GitHub API를 사용합니다. 로컬 저장소에서는 같은 경로를 읽습니다. 같은 경로에서 실패를 반복하거나 웹 검색 요약만으로 조회를 마치지 않습니다.
+공식 저장소는 정본의 출처이며, 공개 사이트는 그 원문을 읽는 우선 조회 경로입니다. 공개 인덱스는 사이트 빌드 때 생성되므로 그 URL을 저장소의 `recommendations/index.md` 경로로 바꾸어 조회하지 않습니다.
+
+1. [권장 원문 인덱스](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.md)를 해당 URL을 지원하는 웹 접근 도구로 직접 열고 연결된 Markdown 원문을 읽습니다. 제목뿐 아니라 적용 조건과 판단 이유로 후보를 찾고, 제안을 지지하는 내용과 제한하는 내용을 함께 비교합니다.
+2. Markdown을 읽을 수 없으면 [HTML 목록과 본문](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.html)을 확인합니다. 두 형식 모두 읽을 수 없으면 [공식 저장소의 `recommendations/`](https://github.com/compass-propaganda/compass-propaganda/tree/main/recommendations)에서 파일 목록을 확인하고, 개별 권장 원문을 저장소 도구·원문 링크·GitHub API로 읽습니다. 로컬 저장소를 사용할 때도 `recommendations/`의 목록과 개별 권장 원문을 읽습니다. 같은 경로에서 실패를 반복하거나 웹 검색 요약만으로 조회를 마치지 않습니다.
 3. 원문의 YAML 프런트 매터 또는 HTML의 같은 정보에서 `pn`, `effect`, `approved_by`, `approved_at`을 확인합니다. `현행`만 적용하며 `철회`는 적용하지 않습니다. `대체`는 해당 문서 기준 `replacement` 경로의 후속 원문을 읽고 효력과 조건을 다시 확인합니다. 날짜가 최신이라는 이유만으로 다른 권장을 대체했다고 추정하지 않습니다.
 4. 필수 정보가 없거나 잘못되었거나 출처끼리 다르면 공식 저장소에서 확인하고, 해소되지 않으면 해당 권장의 적용을 보류합니다. 사이트는 저장소보다 갱신이 늦을 수 있습니다. 사용한 경로와 확인 가능한 커밋·승인일·내용 해시를 기록하며 원문을 읽지 못한 경우에는 그 한계를 밝히고 공통 원칙에 따른 소견이나 판단 보류로 답합니다. 검색 실패를 권장이 없다는 근거로 삼지 않습니다.
 5. 적용 조건과 예외를 확인한 뒤 같은 사례에서 함께 따를 수 없는 권장은 [Pn 룰](TERMINOLOGY.md#pn-룰)로 처리하고 우선한 이유를 설명합니다. Pn으로 해결되지 않는 충돌은 쟁점과 함께 소견이나 판단 보류로 구분합니다. 동봉된 원칙과 새 권장이 충돌하면 그 차이를 밝힙니다. 원칙의 갱신은 사용자가 선택한 새 배포본으로 수행합니다.
