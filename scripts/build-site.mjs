@@ -232,6 +232,7 @@ function layout(path, title, body, description = purpose) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escape(pageTitle)}</title>
 <meta name="description" content="${escape(description)}">
+${integrations.follow_it_verification ? `<meta name="follow.it-verification-code" content="${escape(integrations.follow_it_verification)}">` : ""}
 <link rel="canonical" href="${escape(canonical)}">
 <link rel="alternate" type="application/rss+xml" title="Compass Propaganda 주보" href="${href("feed.xml")}">
 <meta property="og:type" content="website">

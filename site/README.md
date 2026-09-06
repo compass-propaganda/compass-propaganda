@@ -48,3 +48,5 @@ JS
 `scripts/bulletins.mjs`가 [주보 원문](../bulletins/README.md) 중 발행한 글만 사이트와 `feed.xml`에 반영합니다. 일반 문서의 수정은 새 RSS 항목을 만들지 않습니다. 이메일 구독은 공개 RSS를 follow.it에 등록한 뒤, 제공받은 가입 폼 주소를 `site/integrations.json`의 `follow_it_action`에 설정하여 연결합니다. 서비스가 제공한 폼의 필드도 `scripts/participation.mjs`와 대조합니다. 미설정 상태에서는 이메일 가입 폼을 표시하지 않습니다.
 
 `feedback_url`에는 [권장 반응 API](../feedback/README.md)의 HTTPS origin을 설정합니다. 원문 해시와 번호는 사이트와 Worker가 같은 권장 파일에서 생성합니다. `site/feedback.js`가 반응 변경·취소와 메모 제출을 처리하며, 메모는 사이트 생성물에 포함하지 않습니다. `FEEDBACK_URL` 환경 변수는 로컬 연결을 확인할 때 설정 파일 대신 사용할 수 있습니다.
+
+`follow_it_verification`은 follow.it의 피드 소유 확인용 공개 코드이며 각 페이지의 메타 태그로 생성합니다. 피드는 `https://follow.it/compass-propaganda`에서 제공하고, 이메일 가입은 서비스가 발급한 `follow_it_action`으로 `email` 필드를 전송합니다. 구독자 주소는 사이트나 저장소에 저장하지 않습니다.
