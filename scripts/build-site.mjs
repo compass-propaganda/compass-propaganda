@@ -44,13 +44,6 @@ const groups = [
       ["AI.md", "AI 활용"],
     ],
   ],
-  [
-    "구현",
-    [
-      ["ORACLE.md", "오라클의 실행과 검증"],
-      ["oracle/README.md", "참조 구현 안내"],
-    ],
-  ],
 ];
 const documents = [
   ...groups.flatMap(([, entries]) => entries.map(([path]) => path)),
@@ -292,10 +285,8 @@ function furtherReading(current) {
     "ONBOARDING.html": ["PRINCIPLES.html", "setup-oracle.html"],
     "PRINCIPLES.html": ["recommendations/index.html", "APPROACH.html"],
     "TERMINOLOGY.html": ["PRINCIPLES.html", "recommendations/index.html"],
-    "AI.html": ["ORACLE.html", "GOVERNANCE.html"],
-    "ORACLE.html": ["setup-oracle.html", "oracle/README.html"],
-    "oracle/README.html": ["setup-oracle.html", "ORACLE.html"],
-    "PLAN.html": ["GOVERNANCE.html", "ORACLE.html"],
+    "AI.html": ["setup-oracle.html", "GOVERNANCE.html"],
+    "PLAN.html": ["GOVERNANCE.html", "setup-oracle.html"],
     "LICENSE.html": ["GOVERNANCE.html", "index.html"],
     "README.html": ["ONBOARDING.html", "PRINCIPLES.html"],
     "recommendations/TEMPLATE.html": ["GOVERNANCE.html", "recommendations/index.html"],
@@ -426,10 +417,9 @@ const prompts = Object.fromEntries(await Promise.all(
 ));
 await writeFile(resolve(output, "setup-oracle/install.md"), prompts.install);
 const oracleText = await readFile(resolve(root, "dist/oracle.md"), "utf8");
-const bundle = oracleText.match(/문서 묶음 식별자: (.+)/)[1];
-const oracleSetup = `<main id="main" class="document-layout">${sidebar("setup-oracle.html")}<article class="article"><div class="article-meta"><span>설치·사용 안내</span><a href="oracle/README.html">참조 구현 안내 ↗</a></div><div class="prose"><h1>오라클에 자문 구하기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>사용하는 AI를 고르면, 알맞은 시작 방법을 안내합니다.</p></div>
+const oracleSetup = `<main id="main" class="document-layout">${sidebar("setup-oracle.html")}<article class="article"><div class="article-meta"><span>설치·사용 안내</span></div><div class="prose"><h1>오라클에 자문 구하기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>사용하는 AI를 고르면, 알맞은 시작 방법을 안내합니다.</p></div>
 ${renderOracleSetup(prompts, oracleText, escape)}
-<p class="oracle-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="oracle-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details>${furtherReading("setup-oracle.html")}</article></main>`;
+<details class="oracle-note"><summary>오라클은 어떻게 답하나요?</summary><p>현행 권장의 적용 조건을 확인하고 자신의 상황에 맞춰 답합니다. 권장만으로 답할 수 없는 부분은 공통 원칙에 따른 <a href="TERMINOLOGY.html#opinion">소견</a>으로 구분합니다. 판단을 바꿀 중요한 정보가 부족하면 먼저 물을 수 있습니다.</p><p>자문하는 방법과 답변을 받아들이는 기준은 <a href="ONBOARDING.html#ai에-자신의-사례를-묻기">입문 안내</a>에서 더 읽을 수 있습니다.</p></details>${furtherReading("setup-oracle.html")}</article></main>`;
 await writeFile(
   resolve(output, "setup-oracle.html"),
   layout("setup-oracle.html", "오라클에 자문 구하기", oracleSetup, "자신의 AI에서 Compass Propaganda 오라클에 자문을 구합니다. 서비스별 설치·설정 방법과 바로 시작할 수 있는 오라클 문서를 제공합니다."),
