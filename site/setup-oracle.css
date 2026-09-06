@@ -1,0 +1,147 @@
+/* SPDX-License-Identifier: MIT */
+.oracle-setup {
+  margin: 40px 0 28px;
+}
+.oracle-label {
+  font-size: 15px;
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+.oracle-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--ink);
+}
+.oracle-tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 15px;
+  text-decoration: none;
+}
+.oracle-tabs a:hover {
+  background: var(--wash);
+  border-color: var(--ink);
+}
+.oracle-tabs a[aria-selected="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.oracle-tabs img {
+  flex: none;
+}
+.oracle-tabs a[aria-selected="true"] img {
+  filter: invert(1);
+}
+.oracle-other {
+  width: 22px;
+  text-align: center;
+  font-weight: 700;
+}
+.oracle-panel {
+  padding: 32px 0 4px;
+}
+.oracle-panel[hidden] {
+  display: none;
+}
+.oracle-panel > h2 {
+  border: 0;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.oracle-panel > p {
+  margin: 16px 0;
+}
+.oracle-panel .oracle-steps {
+  padding-left: 24px;
+  margin: 28px 0;
+}
+.oracle-steps li {
+  padding-left: 6px;
+  margin: 14px 0;
+}
+.oracle-panel > .copy-bar button,
+.oracle-panel .oracle-primary {
+  color: var(--paper);
+  background: var(--accent);
+}
+.oracle-panel > .copy-bar button:hover,
+.oracle-panel .oracle-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.oracle-panel .oracle-prompt {
+  border: 0;
+  margin: 12px 0 24px;
+}
+.oracle-panel .oracle-prompt > summary {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0;
+  min-height: 40px;
+  color: var(--muted);
+}
+.oracle-panel .oracle-prompt > pre {
+  background: var(--wash);
+  border: 1px solid var(--line);
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.oracle-panel .oracle-next {
+  margin: 24px 0;
+  font-size: 16px;
+}
+.oracle-panel .oracle-help {
+  font-size: 14px;
+}
+.oracle-full-text pre {
+  max-height: 420px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--wash);
+}
+.oracle-panel .oracle-alternative {
+  margin: 0;
+  border-bottom: 0;
+}
+.oracle-panel .oracle-alternative:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.oracle-alternative > p,
+.oracle-alternative > ol {
+  font-size: 16px;
+}
+@media (max-width: 760px) {
+  .oracle-setup {
+    margin-top: 28px;
+  }
+  .oracle-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .oracle-tabs a {
+    padding: 12px;
+    font-size: 14px;
+  }
+  .oracle-panel {
+    padding-top: 28px;
+  }
+}
+@media print {
+  .oracle-tabs,
+  .oracle-label {
+    display: none;
+  }
+  .oracle-panel[hidden] {
+    display: block;
+  }
+}

@@ -175,8 +175,12 @@ for (const [, url] of index.matchAll(/\]\(([^)]+)\)/g)) {
     assert((await stat(join(site, url.slice(publicSite.length)))).isFile());
   }
 }
-assert.equal(await readFile(join(site, "downloads/oracle.md"), "utf8"), prompt);
-const archive = join(site, "downloads/compass-propaganda.zip");
+assert.equal(await readFile(join(site, "setup-oracle/oracle.md"), "utf8"), prompt);
+assert.equal(
+  await readFile(join(site, "setup-oracle/install.md"), "utf8"),
+  await readFile(join(root, "oracle/prompts/install.md"), "utf8"),
+);
+const archive = join(site, "setup-oracle/compass-propaganda.zip");
 const entries = execFileSync("unzip", ["-Z1", archive], { encoding: "utf8" })
   .trim()
   .split("\n")
@@ -200,5 +204,5 @@ assert.equal(
   await readFile(join(root, "oracle/SKILL.md"), "utf8"),
 );
 console.log(
-  `Verified ${pages.length} HTML pages, ${links} local links, ${recPaths.length} indexed recommendation sources, and both oracle downloads.`,
+  `Verified ${pages.length} HTML pages, ${links} local links, ${recPaths.length} indexed recommendation sources, and oracle setup artifacts.`,
 );

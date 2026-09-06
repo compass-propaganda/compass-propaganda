@@ -4,7 +4,7 @@
 
 ## 생성과 설치
 
-에이전트에게 설치를 맡기려면 [입문 안내의 설치 프롬프트](../ONBOARDING.md#ai에-자신의-사례를-묻기)를 사용합니다.
+에이전트에게 설치를 맡기려면 [설치 요청](https://compass-propaganda.github.io/compass-propaganda/setup-oracle/install.md)을 사용합니다.
 
 직접 준비할 때는 저장소 루트에서 다음 명령을 실행합니다. [실행 지침](PROMPT.md), 판단 원칙과 용어가 하나의 프롬프트로 묶이고, [skill 진입점](SKILL.md)과 같은 공통 문서를 포함한 Agent Skills 형식의 배포본도 생성됩니다.[^skills] Node.js 20 이상을 사용하며 별도 패키지 설치는 필요하지 않습니다.
 
@@ -17,11 +17,24 @@ node scripts/build-oracle.mjs --check
 
 skill을 지원하는 AI에서는 `dist/compass-propaganda/` 폴더 전체를 해당 도구의 skill 설치 위치에 넣습니다. `SKILL.md`와 `references/oracle.md`를 함께 보관해야 합니다. 특정 AI 제공자의 API나 오라클 전용 서버는 필요하지 않습니다.
 
+## 프롬프트 원문
+
+프롬프트는 Markdown 원문으로 관리합니다. 실행 지침은 `PROMPT.md`, skill 진입점은 `SKILL.md`에 두고, 설치·시작용 문구는 아래 파일에서 수정합니다. `scripts/setup-oracle.mjs`는 이 문구를 사이트 화면에 배치합니다.
+
+| 원문 | 용도 |
+| --- | --- |
+| `prompts/install.md` | 에이전트에게 전달하는 스킬 설치·갱신 요청 |
+| `prompts/start.md` | 일반 채팅에서 오라클 문서 뒤에 붙이는 자문 시작 지침 |
+| `prompts/other-start.md` | 다른 AI에서 직접 설치 가능 여부에 따라 설치 또는 바로 자문을 시작하는 지침 |
+| `prompts/setup.md` | 프로젝트·Gem에 저장하는 공통 지침 |
+
+사이트 빌드는 같은 `prompts/install.md`를 설치 요청 버튼과 공개 `setup-oracle/install.md`에 사용합니다. 일반 채팅과 다른 AI의 복사문은 각각 `dist/oracle.md` 전체에 해당 시작 지침을 붙입니다. 프로젝트·Gem에는 `dist/oracle.md`를 지식 파일로, 설정용 문구를 지침으로 제공합니다. 설치·시작용 문구는 오라클 문서 묶음과 skill에 동봉하지 않습니다.
+
 ## 배포와 판본 확인
 
 권장을 조회할 때는 [권장 원문 인덱스](https://compass-propaganda.github.io/compass-propaganda/recommendations/index.md)와 연결된 Markdown 원문을 먼저 읽습니다. 사이트 빌드가 저장소에서 생성하며, 인덱스에 빌드 기준 커밋과 권장별 내용 해시를 제공합니다. 자세한 생성 경로는 [사이트 빌드](../site/README.md)에 정리합니다.
 
-`dist/`는 Git에 포함하지 않는 생성물 경로입니다. 원문과 생성 도구를 저장소에서 관리하며, 사이트 빌드가 같은 원문으로 프롬프트와 skill 압축파일을 생성합니다. 완성된 파일은 [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)에서 받습니다.
+`dist/`는 Git에 포함하지 않는 생성물 경로입니다. 원문과 생성 도구를 저장소에서 관리하며, 사이트 빌드가 같은 원문으로 프롬프트와 skill 압축파일을 생성합니다. [오라클에 자문 구하기](https://compass-propaganda.github.io/compass-propaganda/setup-oracle.html)에서 오라클 문서를 복사하거나 서비스별 설치·사용 안내를 따릅니다.
 
 [문서 목록](manifest.json)은 입력 범위를 명시합니다. 생성 파일에는 각 원문의 내용과 SHA-256 해시, 묶음 식별자가 들어갑니다. 원문이 바뀌면 다시 생성해야 하며 `--check`는 변경을 감지합니다. 해시는 내용의 식별 수단이며 중앙의 신원을 인증하는 서명은 아닙니다.
 

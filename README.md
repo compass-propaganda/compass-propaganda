@@ -2,7 +2,7 @@
 
 **컴퍼스 프로파간다 — 권장합니다. 근거는 공개합니다.**
 
-[웹사이트](https://compass-propaganda.github.io/compass-propaganda/) · [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)
+[웹사이트](https://compass-propaganda.github.io/compass-propaganda/) · [오라클에 자문 구하기](https://compass-propaganda.github.io/compass-propaganda/setup-oracle.html)
 
 Compass Propaganda는 공동의 가치기준에 따라 일상의 선택을 권장하는 교단입니다. 중앙은 복잡한 비교와 근거 검토를 맡고, 신도는 그 판단을 신뢰하여 개별 사안을 직접 조사하는 부담을 덜 수 있습니다.
 

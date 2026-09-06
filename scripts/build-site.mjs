@@ -14,6 +14,7 @@ import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import { parseRecommendations } from "./recommendations.mjs";
+import { renderOracleSetup } from "./setup-oracle.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = resolve(root, "dist/site");
@@ -174,13 +175,6 @@ markdown.renderer.rules.heading_close = (tokens, idx, options, env, self) => {
 markdown.renderer.rules.table_open = () =>
   '<div class="table-scroll" tabindex="0" role="region" aria-label="비교 표"><table>\n';
 markdown.renderer.rules.table_close = () => "</table></div>\n";
-const originalFence = markdown.renderer.rules.fence;
-markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
-  if (env.source === "ONBOARDING.md" && tokens[idx].info.trim() === "text") {
-    return `<div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사 <span aria-hidden="true">⧉</span></button><span role="status" aria-live="polite"></span></div><pre><code id="install-request">${escape(tokens[idx].content)}</code></pre>`;
-  }
-  return originalFence(tokens, idx, options, env, self);
-};
 const render = (source, text = recommendationsBySource.get(source)?.body ?? sources.get(source)) => {
   const body = markdown.render(text, { source, output: htmlPath(source) });
   const rec = recommendationsBySource.get(source);
@@ -253,9 +247,10 @@ function layout(path, title, body, description = purpose) {
 <meta name="theme-color" content="#fafaf7">
 <link rel="icon" href="${href("assets/symbol.svg")}" type="image/svg+xml">
 <link rel="stylesheet" href="${href("assets/style.css")}">
+${path === "setup-oracle.html" ? `<link rel="stylesheet" href="${href("assets/setup-oracle.css")}"><script src="${href("assets/setup-oracle.js")}" defer></script>` : ""}
 <script src="${href("assets/client.js")}" defer></script></head>
 <body><a class="skip" href="#main">본문으로 건너뛰기</a><div class="shell">
-<header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "downloads.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
+<header class="header"><a class="brand" href="${href("index.html")}" aria-label="Compass Propaganda 홈">${symbol}<span>compass propaganda<span class="brand-korean">컴퍼스 프로파간다</span></span></a><nav aria-label="주 메뉴">${navigationLink(path, "PRINCIPLES.html", "교리")}${navigationLink(path, "recommendations/index.html", "권장")}${navigationLink(path, "setup-oracle.html", "오라클")}<a class="external" href="${repository}">GitHub ↗</a></nav></header>
 ${body}
 <footer class="footer"><a class="footer-brand" href="${href("index.html")}">compass<br>propaganda<span>컴퍼스 프로파간다</span></a><div class="footer-links"><a href="${href("ONBOARDING.html")}">입문 안내</a><a href="${href("LICENSE.html")}">CC BY-SA 4.0</a><a href="${repository}">원문 저장소 ↗</a></div><a class="edition" href="${repository}/tree/${revision}"><span>원문 판본</span><span>${revision.slice(0, 7)} ↗</span></a></footer></div></body></html>`;
 }
@@ -269,7 +264,7 @@ function sidebar(current) {
       "권장과 자료",
       [
         ["recommendations/index.html", "권장 모음"],
-        ["downloads.html", "오라클 받기"],
+        ["setup-oracle.html", "오라클에 자문 구하기"],
         ["PLAN.html", "설계 계획"],
         ["LICENSE.html", "라이선스"],
       ],
@@ -294,18 +289,18 @@ function recList(from, entries = currentRecommendations) {
 }
 function furtherReading(current) {
   const routes = {
-    "ONBOARDING.html": ["PRINCIPLES.html", "downloads.html"],
+    "ONBOARDING.html": ["PRINCIPLES.html", "setup-oracle.html"],
     "PRINCIPLES.html": ["recommendations/index.html", "APPROACH.html"],
     "TERMINOLOGY.html": ["PRINCIPLES.html", "recommendations/index.html"],
     "AI.html": ["ORACLE.html", "GOVERNANCE.html"],
-    "ORACLE.html": ["downloads.html", "oracle/README.html"],
-    "oracle/README.html": ["downloads.html", "ORACLE.html"],
+    "ORACLE.html": ["setup-oracle.html", "oracle/README.html"],
+    "oracle/README.html": ["setup-oracle.html", "ORACLE.html"],
     "PLAN.html": ["GOVERNANCE.html", "ORACLE.html"],
     "LICENSE.html": ["GOVERNANCE.html", "index.html"],
     "README.html": ["ONBOARDING.html", "PRINCIPLES.html"],
     "recommendations/TEMPLATE.html": ["GOVERNANCE.html", "recommendations/index.html"],
-    "recommendations/index.html": ["PRINCIPLES.html", "downloads.html"],
-    "downloads.html": ["ONBOARDING.html", "recommendations/index.html"],
+    "recommendations/index.html": ["PRINCIPLES.html", "setup-oracle.html"],
+    "setup-oracle.html": ["ONBOARDING.html", "recommendations/index.html"],
   };
   let targets = routes[current];
   if (!targets && recommendationsBySource.has(current.replace(/\.html$/, ".md"))) {
@@ -319,7 +314,7 @@ function furtherReading(current) {
     const next = entries[index + 1] || entries[0];
     targets = [next ? htmlPath(next[0]) : "ONBOARDING.html", "index.html"];
   }
-  const labels = { "index.html": "서고", "downloads.html": "오라클 받기", "recommendations/index.html": "권장 모음" };
+  const labels = { "index.html": "서고", "setup-oracle.html": "오라클에 자문 구하기", "recommendations/index.html": "권장 모음" };
   const links = targets.filter((target) => target && target !== current).map((target) => {
     const label = labels[target] || titleOf(target.replace(/\.html$/, ".md"));
     return `<a href="${relative(current, target)}"><span>${escape(label)}</span><span aria-hidden="true">→</span></a>`;
@@ -328,9 +323,13 @@ function furtherReading(current) {
 }
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "assets"), { recursive: true });
-await mkdir(resolve(output, "downloads"), { recursive: true });
-for (const file of ["style.css", "client.js", "symbol.svg", "flame.png", "social.png"])
+await mkdir(resolve(output, "setup-oracle"), { recursive: true });
+for (const file of ["style.css", "client.js", "setup-oracle.css", "setup-oracle.js", "symbol.svg", "flame.png", "social.png"])
   await copyFile(resolve(root, "site", file), resolve(output, "assets", file));
+await mkdir(resolve(output, "assets/brands"), { recursive: true });
+for (const file of await readdir(resolve(root, "site/brands"))) {
+  if (file.endsWith(".svg")) await copyFile(resolve(root, "site/brands", file), resolve(output, "assets/brands", file));
+}
 for (const file of await readdir(resolve(root, "LICENSES"))) {
   await mkdir(resolve(output, "LICENSES"), { recursive: true });
   await copyFile(
@@ -340,14 +339,14 @@ for (const file of await readdir(resolve(root, "LICENSES"))) {
 }
 await copyFile(
   resolve(root, "dist/oracle.md"),
-  resolve(output, "downloads/oracle.md"),
+  resolve(output, "setup-oracle/oracle.md"),
 );
 execFileSync(
   "zip",
   [
     "-X",
     "-q",
-    resolve(output, "downloads/compass-propaganda.zip"),
+    resolve(output, "setup-oracle/compass-propaganda.zip"),
     "compass-propaganda/SKILL.md",
     "compass-propaganda/references/oracle.md",
   ],
@@ -384,7 +383,7 @@ const home = `<main id="main" class="home">
 <a class="route" href="APPROACH.html"><h3>과학적 접근</h3><p>근거의 검토, 결과의 예측과 검증</p><span class="arrow" aria-hidden="true">→</span></a>
 <a class="route" href="GOVERNANCE.html"><h3>운영과 참여</h3><p>권장의 승인과 발행, 제안과 수정</p><span class="arrow" aria-hidden="true">→</span></a></div></section>
 <section class="section"><div class="section-label"><h2>권장</h2><a class="text-link" href="recommendations/index.html">권장 모음 <span aria-hidden="true">→</span></a></div>${recList("index.html")}</section>
-<section class="section oracle-section"><h2>오라클</h2><div><p>사용하는 AI에 프롬프트나 skill을 제공하고 사례를 묻습니다. AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p><a class="text-link" href="downloads.html">오라클 받기 <span aria-hidden="true">→</span></a></div></section>
+<section class="section oracle-section"><h2>오라클</h2><div><p>자신의 AI에서 오라클과 대화하며 일상의 선택에 대해 자문을 구합니다. AI는 공개 권장과 공통 원칙을 참고해 답합니다.</p><a class="text-link" href="setup-oracle.html">오라클에 자문 구하기 <span aria-hidden="true">→</span></a></div></section>
 </main>`;
 await writeFile(
   resolve(output, "index.html"),
@@ -420,20 +419,24 @@ ${recommendations.map((rec) => `## ${String(rec.number).padStart(3, "0")}. ${rec
 - SHA-256: ${createHash("sha256").update(sources.get(rec.source)).digest("hex")}
 `).join("\n")}`;
 await writeFile(resolve(output, "recommendations/index.md"), recIndex);
-const installPrompt = sources
-  .get("ONBOARDING.md")
-  .match(/```text\n([\s\S]*?)```/)[1];
-const bundle = (await readFile(resolve(root, "dist/oracle.md"), "utf8")).match(
-  /문서 묶음 식별자: (.+)/,
-)[1];
-const downloads = `<main id="main" class="document-layout">${sidebar("downloads.html")}<article class="article"><div class="article-meta"><span>참조 구현 / 다운로드</span><a href="oracle/README.html">구성·설치 안내 ↗</a></div><div class="prose"><h1>오라클 받기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>권장은 질문할 때 공식 저장소에서 찾아 읽습니다.</p>
-<section class="installation"><h2>에이전트에게 설치 맡기기</h2><p>아래 요청을 복사해 지금 사용하는 에이전트에게 전달하세요.</p><div class="copy-bar"><button type="button" data-copy="install-request">설치 요청 복사 <span aria-hidden="true">⧉</span></button><span role="status" aria-live="polite"></span></div><details><summary>설치 요청 내용</summary><pre><code id="install-request">${escape(installPrompt)}</code></pre></details></section></div>
-<div class="download-grid"><section class="download-card"><span class="file-format" aria-hidden="true">MD</span><div><h2>프롬프트</h2><p>파일 전체를 AI에 첨부하거나 붙여 넣고 자신의 사례를 적습니다.</p></div><a class="button" href="downloads/oracle.md" download>oracle.md <span aria-hidden="true">↓</span></a></section><section class="download-card"><span class="file-format" aria-hidden="true">ZIP</span><div><h2>Agent Skill</h2><p>압축을 풀고 폴더 전체를 사용하는 에이전트의 skill 위치에 설치합니다.</p></div><a class="button" href="downloads/compass-propaganda.zip" download>skill.zip <span aria-hidden="true">↓</span></a></section></div>
-<p class="download-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="download-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details>${furtherReading("downloads.html")}</article></main>`;
+const prompts = Object.fromEntries(await Promise.all(
+  ["install", "setup", "start", "other-start"].map(async (name) => [
+    name, await readFile(resolve(root, `oracle/prompts/${name}.md`), "utf8"),
+  ]),
+));
+await writeFile(resolve(output, "setup-oracle/install.md"), prompts.install);
+const oracleText = await readFile(resolve(root, "dist/oracle.md"), "utf8");
+const bundle = oracleText.match(/문서 묶음 식별자: (.+)/)[1];
+const oracleSetup = `<main id="main" class="document-layout">${sidebar("setup-oracle.html")}<article class="article"><div class="article-meta"><span>설치·사용 안내</span><a href="oracle/README.html">참조 구현 안내 ↗</a></div><div class="prose"><h1>오라클에 자문 구하기</h1><p>공통 가치와 판단 원칙을 자신의 AI에서 사용합니다.<br>사용하는 AI를 고르면, 알맞은 시작 방법을 안내합니다.</p></div>
+${renderOracleSetup(prompts, oracleText, escape)}
+<p class="oracle-note">사용 방법은 <a href="ONBOARDING.html">입문 안내</a>에, 구성과 생성 절차는 <a href="oracle/README.html">참조 구현 안내</a>에 정리되어 있습니다.</p><details class="oracle-note"><summary>이 배포본의 원문과 식별자</summary><p><a href="${repository}/tree/${revision}">원문 보기 ↗</a></p><p class="source-line">${escape(bundle)}</p></details>${furtherReading("setup-oracle.html")}</article></main>`;
+await writeFile(
+  resolve(output, "setup-oracle.html"),
+  layout("setup-oracle.html", "오라클에 자문 구하기", oracleSetup, "자신의 AI에서 Compass Propaganda 오라클에 자문을 구합니다. 서비스별 설치·설정 방법과 바로 시작할 수 있는 오라클 문서를 제공합니다."),
+);
 await writeFile(
   resolve(output, "downloads.html"),
-  layout("downloads.html", "오라클 받기", downloads, "Compass Propaganda의 기본 교리와 판단 원칙을 자신의 AI에서 사용하는 오라클 프롬프트와 Agent Skill을 받습니다."),
+  layout("downloads.html", "오라클에 자문 구하기", '<main id="main" class="prose"><h1>오라클에 자문 구하기</h1><p><a href="setup-oracle.html">오라클 설치·사용 안내로 이동하기 →</a></p></main>', "오라클 설치·사용 안내가 새 주소로 이동했습니다.")
+    .replace("</head>", '<script>location.replace("setup-oracle.html" + location.hash)</script><noscript><meta http-equiv="refresh" content="0; url=setup-oracle.html"></noscript></head>'),
 );
-console.log(
-  `Built ${documents.length + 3} pages and oracle downloads in ${output}`,
-);
+console.log(`Built ${documents.length + 4} pages and oracle setup artifacts in ${output}`);

@@ -772,41 +772,7 @@ details.recommendation-metadata > dl {
   color: var(--muted);
   font-size: 14px;
 }
-.download-grid {
-  margin: 44px 0 24px;
-  border-top: 1px solid var(--ink);
-}
-.download-card {
-  display: grid;
-  grid-template-columns: 45px minmax(0, 1fr) auto;
-  gap: 22px;
-  align-items: center;
-  padding: 28px 0;
-  border-bottom: 1px solid var(--line);
-}
-.file-format {
-  color: var(--accent);
-  font-family: var(--mono);
-  font-weight: 600;
-}
-.download-card h2 {
-  margin: 0 0 8px;
-  font-size: 23px;
-  font-weight: 550;
-  letter-spacing: -0.035em;
-}
-.download-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.8;
-  word-break: keep-all;
-}
-.download-card .button {
-  white-space: nowrap;
-  min-width: 130px;
-}
-.download-note {
+.oracle-note {
   font-size: 14px;
   color: var(--muted);
   line-height: 1.9;
@@ -824,13 +790,6 @@ details.recommendation-metadata > dl {
     gap: 40px;
   }
 
-  .download-card {
-    grid-template-columns: 40px minmax(0, 1fr);
-  }
-  .download-card .button {
-    grid-column: 2;
-    justify-self: start;
-  }
 }
 @media (max-width: 760px) {
   .further-reading > div {
@@ -1050,15 +1009,6 @@ details.recommendation-metadata > dl {
   .pn-link {
     padding-right: 10px;
   }
-  .download-card {
-    gap: 16px;
-  }
-  .download-card h2 {
-    font-size: 22px;
-  }
-  .download-card p {
-    font-size: 14px;
-  }
 }
 @media (prefers-reduced-motion: no-preference) {
   a,
@@ -1123,7 +1073,6 @@ details.recommendation-metadata > dl {
     border: 1px solid #000;
   }
   .recommendation,
-  .download-card,
   .pn-badge {
     break-inside: avoid;
   }

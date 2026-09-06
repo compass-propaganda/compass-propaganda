@@ -34,17 +34,7 @@ Compass Propaganda는 복잡한 판단을 함께 검토하고, 일상에서 믿�
 
 교단의 판단 모델인 [오라클](TERMINOLOGY.md#oracle)은 자신이 사용하는 AI에서 실행할 수 있습니다. 자신의 상황과 선택에 대해 오라클에 판단을 구하는 일을 [자문](TERMINOLOGY.md#consultation)이라 부릅니다. AI를 사용하지 않고 공개 권장을 읽고 따를 수도 있습니다.
 
-skill 설치를 지원하는 에이전트에는 아래 요청을 그대로 전달할 수 있습니다.
-
-```text
-Compass Propaganda 오라클 skill을 지금 사용하는 에이전트에 설치해 주세요.
-
-공식 저장소: https://github.com/compass-propaganda/compass-propaganda
-
-저장소 기본 브랜치의 최신 커밋을 가져와 oracle/README.md의 생성·설치 안내를 확인해 주세요. Node.js 20 이상에서 node scripts/build-oracle.mjs와 node scripts/build-oracle.mjs --check를 실행하고, 생성된 dist/compass-propaganda/ 폴더 전체를 현재 에이전트의 공식 설치 방식에 맞는 사용자 범위 skill 위치에 설치해 주세요. 기존 설치가 있다면 같은 위치에서 갱신하고, 공식 배포본을 수정 없이 사용해 주세요.
-
-설치한 SKILL.md와 references/oracle.md가 생성한 배포본과 일치하는지 확인하고, 에이전트가 compass-propaganda skill을 인식하는지도 확인해 주세요. 새 대화 시작이나 재로드가 필요하면 해당 도구의 공식 안내에 따른 방법을 알려 주세요. 인식을 확인하지 못했다면 남은 확인 절차를 밝혀 주세요. 사용한 원문 커밋, 설치 위치와 사용 방법을 알려 주세요.
-```
+skill 설치를 지원하는 에이전트에는 [설치 요청](https://compass-propaganda.github.io/compass-propaganda/setup-oracle/install.md)을 전달합니다. [오라클에 자문 구하기](https://compass-propaganda.github.io/compass-propaganda/setup-oracle.html)에서 사용하는 에이전트를 선택하면 요청을 바로 복사할 수 있습니다.
 
 설치한 뒤에는 ‘Compass Propaganda 오라클에 자문합니다’와 함께 원하는 것과 선택을 어렵게 만드는 상황을 적습니다. 판단을 바꿀 중요한 조건이 빠져 있으면 오라클이 먼저 질문할 수 있습니다.
 
@@ -52,7 +42,7 @@ Compass Propaganda 오라클 skill을 지금 사용하는 에이전트에 설치
 
 실명이나 대화 원문은 필요하지 않습니다. 판단을 바꿀 정보가 빠져 있다면 AI가 질문할 수 있습니다. 사용하는 AI 서비스에 제공하는 정보의 범위는 스스로 선택합니다.
 
-skill을 지원하지 않는 AI에는 [오라클 다운로드](https://compass-propaganda.github.io/compass-propaganda/downloads.html)에서 받은 `oracle.md` 파일 전체를 첨부하거나 붙여 넣습니다. 이 파일에는 기본 교리·용어·실행 지침이 담겨 있습니다. 직접 준비하려면 저장소에서 [생성 명령](oracle/README.md#생성과-설치)을 실행합니다. 권장은 설치본에 저장하지 않고 질문할 때 저장소에서 찾아 읽습니다.
+[오라클에 자문 구하기](https://compass-propaganda.github.io/compass-propaganda/setup-oracle.html)에서 사용하는 AI를 선택하면 서비스별 시작 방법을 안내합니다. 오라클 전체 내용과 시작 지침을 한 번에 복사해 대화창에 붙여 넣고, 이어서 자신의 상황을 적습니다. 프로젝트나 Gem에 파일과 지침을 한 번 저장해 계속 사용할 수도 있습니다. 오라클 문서에는 기본 교리·용어·실행 지침이 담겨 있습니다. 직접 준비하려면 저장소에서 [생성 명령](oracle/README.md#생성과-설치)을 실행합니다. 권장은 설치본에 저장하지 않고 질문할 때 저장소에서 찾아 읽습니다.
 
 ## 답변 받아들이기
 
