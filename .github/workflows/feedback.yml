@@ -1,0 +1,30 @@
+name: Check feedback service
+
+on:
+  push:
+    branches: [main]
+    paths: ['feedback/**', 'recommendations/**', 'scripts/recommendations.mjs', 'package-lock.json', '.github/workflows/feedback.yml']
+  pull_request:
+    paths: ['feedback/**', 'recommendations/**', 'scripts/recommendations.mjs', 'package-lock.json', '.github/workflows/feedback.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            feedback/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix feedback
+      - run: npm test --prefix feedback

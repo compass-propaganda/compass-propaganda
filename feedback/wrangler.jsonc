@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "compass-propaganda-feedback",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://compass-propaganda.github.io"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "compass-propaganda-feedback",
+    "database_id": "00000000-0000-0000-0000-000000000000",
+    "migrations_dir": "migrations"
+  }],
+  "ratelimits": [{
+    "name": "RATE_LIMITER",
+    "namespace_id": "2026090601",
+    "simple": { "limit": 60, "period": 60 }
+  }],
+  "env": {
+    "local": {
+      "vars": { "ALLOWED_ORIGINS": "http://127.0.0.1:4173,http://localhost:4173" },
+      "d1_databases": [{
+        "binding": "DB",
+        "database_name": "compass-propaganda-feedback-local",
+        "database_id": "00000000-0000-0000-0000-000000000001",
+        "migrations_dir": "migrations"
+      }],
+      "ratelimits": [{
+        "name": "RATE_LIMITER",
+        "namespace_id": "2026090602",
+        "simple": { "limit": 60, "period": 60 }
+      }]
+    }
+  }
+}
