@@ -2,6 +2,50 @@
 
 교단의 판단 방법과 제도를 검토할 때 함께 살피는 사상·저작·종교운동입니다. 교단이 채택한 사상적 기준은 [판단 원칙](PRINCIPLES.md#기반-사상과-이론)에, 사상가별 참고 범위는 [선지자들](PROPHETS.md)에, 측정과 검증의 근거는 [과학적 접근](APPROACH.md)에 정리합니다.
 
+## 교리와 가까운 철학적 개념
+
+다음은 기존 교리를 이해하고 비교하기 위한 설명입니다. 채택 범위는 [판단 원칙](PRINCIPLES.md#기반-사상과-이론)을 따르며, 친연성이 있다는 이유로 해당 학파의 가치론이나 정치적 결론 전체를 가져오지 않습니다.
+
+### 개인에게 좋은 삶
+
+철학의 안녕<span class="original-term" lang="en">well-being</span> 또는 개인에게 좋은 가치<span class="original-term" lang="en">prudential value</span>는 그 사람 자신에게 궁극적으로 좋은 것이 무엇인지를 묻는 개념입니다. 도덕적으로 옳은 것과 그 사람에게 좋은 것은 구분해서 물을 수 있습니다.[^well-being] 교단은 이 관점에서 권장을 받는 개인의 경험과 삶을 먼저 평가합니다.
+
+좋은 삶을 설명하는 이론에는 즐거움과 고통을 중심으로 보는 쾌락주의<span class="original-term" lang="en">hedonism</span>, 욕구의 충족을 중심으로 보는 욕구충족 이론<span class="original-term" lang="en">desire-fulfilment theory</span>, 여러 좋은 것을 욕구나 즐거움과 별개로도 인정하는 객관적 목록 이론<span class="original-term" lang="en">objective-list theory</span> 등이 있습니다.[^well-being]
+
+교단이 관계·의미·성취·자율성을 함께 고려한다는 사실만으로 객관적 목록 이론이나 독립적인 최종 가치의 다원주의를 채택했다고 보지는 않습니다. 이 요소들은 개인이 경험하는 삶과 그 삶을 가능하게 하는 조건에 연결해 평가합니다. 경험과 이후의 결과가 정말 같다는 가정과, 현재의 만족만 같고 미래의 위험·선택 가능성은 다른 현실의 경우도 구별합니다. ‘다원적 웰빙론’ 같은 분류보다 이 평가 범위를 직접 설명하는 편이 정확합니다.
+
+### 실제로 가능한 삶과 자기 선택
+
+[센의 역량 접근](PROPHETS.md#아마르티아-센)은 자원 보유량과 실제로 가능한 삶을 구별하는 데 도움이 됩니다. 교단은 낙원의 현실적 조건을 검토하는 관점으로 참고하며, 센의 평등론을 개인의 경험에 관한 최종 가치론과 동일시하지 않습니다.
+
+개인적 자율성<span class="original-term" lang="en">personal autonomy</span>은 자신의 삶을 이끄는 욕구와 이유가 단순히 외부에서 강요된 것이 아니라 자기 것으로 받아들일 수 있는지를 묻습니다.[^autonomy] 자유 논의에서는 방해나 제약의 부재를 강조하는 소극적 자유<span class="original-term" lang="en">negative liberty</span>와 자기 삶을 이끌고 목적을 실현하는 적극적 자유<span class="original-term" lang="en">positive liberty</span>를 구별하기도 합니다.[^liberty]
+
+교단의 해방은 방해를 없애는 일과 실제로 원하는 삶을 살 조건을 갖추는 일에 모두 연결됩니다. 자율성은 개인의 경험과 선택·수정의 가능성에 비추어 평가하며, 모든 판단을 직접 해야 한다는 요구로 바꾸지 않습니다. 신뢰하는 기준에 자발적으로 맡기고 다시 거둘 수 있는 선택도 중요합니다. 자유의 두 구분만으로 특정한 국가·제도·개입 방식을 채택하지는 않습니다.
+
+### 판단의 한계와 충분한 선택
+
+[사이먼의 제한된 합리성](PROPHETS.md#허버트-사이먼)은 정보·시간·계산 능력의 한계를 판단의 출발점으로 삼게 합니다. 요구 수준을 충족하는 선택에서 탐색을 끝내는 방식<span class="original-term" lang="en">satisficing</span>은 모든 대안을 비교해 최적을 찾는 방식과 구별됩니다.
+
+교단은 판단에 드는 수고도 삶의 비용으로 보고, 권장과 자발적인 위임으로 그 부담을 줄이려 합니다. 이는 단순한 규칙이나 중앙의 판단이 언제나 우월하다는 뜻이 아닙니다. 적용 조건과 예외, 잘못된 일반화의 손실은 [생활 규칙과 판단 비용](APPROACH.md#생활-규칙과-판단-비용)에 따라 함께 평가합니다.
+
+### 개선가능성과 기술적 낙관주의
+
+[제임스의 멜리오리즘](PROPHETS.md#윌리엄-제임스)은 개선이 보장되지 않더라도 실제 조건과 행동에 따라 가능해질 수 있다는 태도를 설명합니다. 교단은 이를 기술적 낙관주의의 대체물이 아니라, 기대를 지금 가능한 개선에 연결하는 배경으로 참고합니다.
+
+에피쿠로스에게서 이어받은 고통과 불안을 덜려는 지향과, 트랜스휴머니즘<span class="original-term" lang="en">transhumanism</span>의 생물학적 한계를 넘어 삶의 가능성을 넓히려는 지향은 함께 설명할 수 있습니다. 그러나 이 조합은 교단의 해석이지 하나의 기존 학파명은 아닙니다. 현재를 누리는 일과 미래의 가능성을 지키는 일의 기준은 [삶의 지속과 진보](PRINCIPLES.md#삶의-지속과-진보)를 따릅니다.
+
+### 장기적 자기이익과 협력
+
+교단의 관점은 눈앞의 이익만이 아니라 관계·공감·협력과 장기적 결과를 고려한다는 뜻에서 계몽된 자기이익<span class="original-term" lang="en">enlightened self-interest</span>이라는 표현으로 설명할 수 있습니다. 이는 여기서 쓰는 설명적 표현이며, 타인을 돕는 모든 행동이 언제나 자기 이익이라는 정리를 채택하는 것은 아닙니다.
+
+[에피쿠로스의 우정과 상호 보호](PROPHETS.md#에피쿠로스), [생활 규칙의 이익과 비용](APPROACH.md#생활-규칙과-판단-비용)을 함께 살핍니다. 사랑하고 돌보는 경험도 개인의 좋은 삶의 일부일 수 있으며, 단기적 이익과 장기적 이익의 충돌을 실제 조건에 따라 검토합니다. 상호성과 비가해의 도출 조건과 한계는 [교리의 논제](PRINCIPLES.md#6-교리의-논제)에 남아 있습니다.
+
+### 상황 속에서 삶을 이루기
+
+실존주의<span class="original-term" lang="en">existentialism</span>의 일부 논의는 자신을 선택과 행동으로 이루어 가는 존재로 보고, 그러한 자유가 몸과 사회적·역사적 상황 안에서 행사된다는 점을 살핍니다.[^existentialism] ‘자기 삶의 저자 되기<span class="original-term" lang="en">self-authorship</span>’라는 비유는 이런 친연성을 설명하는 데 쓸 수 있습니다.
+
+교단은 고유한 삶과 현실의 제약을 함께 본다는 점을 비교합니다. 다만 공통된 판단 기준과 자발적 위임을 두는 교단의 방식까지 실존주의와 동일시하지 않습니다. 불안이나 고통을 겪어야 진정한 삶이라는 요구도 이 비교에서 도출하지 않습니다.
+
 ## 사상·제도·서비스의 비교
 
 각 항목에 명시한 문헌과 제도를 기준으로 비교합니다. 기호와 유형을 누르면 설명을 읽을 수 있습니다.
@@ -28,13 +72,13 @@
 
 ## 오귀스트 콩트의 인류교
 
-콩트는 과학과 철학을 교육, 성직 제도와 의례로 연결하는 인류교를 구상했습니다. 정신적 권위를 세속의 집행 권력과 구별하고, 사람들이 그 조언을 받아들이거나 거절할 수 있다고 서술했습니다.[^comte]
+오귀스트 콩트<span class="original-term" lang="fr">Auguste Comte</span>는 과학과 철학을 교육, 성직 제도와 의례로 연결하는 인류교를 구상했습니다. 정신적 권위를 세속의 집행 권력과 구별하고, 사람들이 그 조언을 받아들이거나 거절할 수 있다고 서술했습니다.[^comte]
 
 교단은 전문적인 탐구를 공동의 지침으로 전달하는 구조, 조언의 권위와 강제력의 구별, 앞선 인물들을 기리는 의례를 비교합니다. 인류를 위한 봉사를 도덕의 중심에 놓는 목적과 성직 체계의 위계는 교단의 목적 및 운영 원칙과 대조하여 살핍니다.[^comte-system]
 
 ## 토머스 베이즈의 확률 추론
 
-베이즈는 관찰된 성공과 실패를 바탕으로 알려지지 않은 발생 확률을 추론하는 문제를 다뤘습니다.[^bayes]
+토머스 베이즈<span class="original-term" lang="en">Thomas Bayes</span>는 관찰된 성공과 실패를 바탕으로 알려지지 않은 발생 확률을 추론하는 문제를 다뤘습니다.[^bayes]
 
 교단은 관찰 전의 가정과 새로 얻은 근거가 추정에 어떻게 반영되는지 명시하는 방법을 참고합니다. 이는 [오라클](TERMINOLOGY.md#oracle)에서 결과의 불확실성을 다루는 수학적 참고 자료입니다.[^bayes-use]
 
@@ -56,7 +100,7 @@ Dudeism은 삶을 더 즐겁고 의미 있게 만드는 태도를 지향하며, 
 
 ## 출처와 주석
 
-자료 확인일: 2026-09-05.
+기존 자료 확인일: 2026-09-05. 추가 자료는 각주에 확인일과 범위를 명시합니다.
 
 [^catholic]: [『가톨릭 교회 교리서』 85–86·94항](https://www.vatican.va/content/catechism/en/part_one/section_one/chapter_two/artcile_2/iii_the_interpretation_of_the_heritage_of_faith.html). 교도권은 계시를 임의로 교체하는 권한이 아니라 전승된 신앙을 해석하는 직무로 설명됩니다. 교단의 권장 수정과 같은 종류의 변경으로 취급하지 않습니다.
 
@@ -89,3 +133,12 @@ Dudeism은 삶을 더 즐겁고 의미 있게 만드는 태도를 지향하며, 
 [^vatican-use]: 바티칸, [Legal Notes](https://www.vatican.va/content/vatican/en/legal-notes.html)의 포털 콘텐츠 이용 조건. 이 표에 인용한 웹 문서의 이용 조건을 비교하며, 가톨릭 관련 모든 저작물의 조건을 판정하지 않습니다. 확인일: 2026-09-06.
 
 [^consumer-use]: Consumer Reports, [No Commercial Use Policy](https://www.consumerreports.org/about-us/policies-and-financials/no-commercial-use-policy/). 평가·추천 콘텐츠의 상업적 이용 제한과 별도 서면 계약에 따른 허락을 확인했습니다. 이 조직이 공개하는 모든 소프트웨어나 개별 자료의 라이선스를 판정하지 않습니다. 확인일: 2026-09-06.
+
+
+[^well-being]: Roger Crisp, [*Well-Being*](https://plato.stanford.edu/entries/well-being/), Stanford Encyclopedia of Philosophy. 확인일: 2026-09-06. 도입부와 1절의 개인에게 좋은 가치, 4절의 쾌락주의·욕구 이론·객관적 목록 이론 구분을 확인했습니다. 학술 해설을 개념의 식별과 비교에 사용하며, 인용된 각 철학자의 원전 전체를 읽거나 어느 이론의 옳음을 검증했다는 뜻은 아닙니다. 교단과의 연결 및 채택 범위는 교단의 해석입니다.
+
+[^autonomy]: John Christman, [*Autonomy in Moral and Political Philosophy*](https://plato.stanford.edu/entries/autonomy-moral/), Stanford Encyclopedia of Philosophy. 확인일: 2026-09-06. 도입부와 1.1절의 개인적 자율성·도덕적 자율성·자유의 구분, 2.1절의 자율성의 가치에 관한 논의를 확인했습니다. 개념 비교를 위한 학술 해설이며, 자율성을 경험과 별개인 최종 가치로 채택하는 근거로 쓰지 않습니다.
+
+[^liberty]: Ian Carter & Ilkin Huseynli, [*Positive and Negative Liberty*](https://plato.stanford.edu/entries/liberty-positive-negative/), Stanford Encyclopedia of Philosophy. 확인일: 2026-09-06. 도입부와 1–3절의 자유 개념 구분 및 자율성을 강제의 명분으로 삼을 위험에 관한 논의를 확인했습니다. 학술 해설의 구분을 참고하며, 소극적 자유가 물질적 조건을 전혀 다루지 않는다거나 적극적 자유가 언제나 강제를 뜻한다고 요약하지 않습니다.
+
+[^existentialism]: Kevin Aho, [*Existentialism*](https://plato.stanford.edu/entries/existentialism/), Stanford Encyclopedia of Philosophy. 확인일: 2026-09-06. 3절의 자기 형성과 4.2절의 상황에 의해 매개되는 자유에 관한 학술 해설을 확인했습니다. 여러 사상가의 차이를 포함한 해설이며, 사르트르·보부아르 등의 원전을 각각 검토하거나 실존주의 전체를 교단의 기반으로 채택한 것은 아닙니다.
