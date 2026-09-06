@@ -4,7 +4,7 @@
   "main": "worker.mjs",
   "compatibility_date": "2026-09-06",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
+  "workers_dev": false,
   "preview_urls": false,
   "observability": { "enabled": true, "head_sampling_rate": 0.1 },
   "vars": {
@@ -13,7 +13,7 @@
   "d1_databases": [{
     "binding": "DB",
     "database_name": "compass-propaganda-feedback",
-    "database_id": "00000000-0000-0000-0000-000000000000",
+    "database_id": "83ed8b77-07f0-4820-8833-973e860c34c8",
     "migrations_dir": "migrations"
   }],
   "ratelimits": [{

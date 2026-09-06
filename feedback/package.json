@@ -9,6 +9,7 @@
     "test": "node prepare.mjs && wrangler deploy --env='' --dry-run --outdir ../dist/feedback && node --test test/*.test.mjs",
     "check": "node prepare.mjs && wrangler deploy --env='' --dry-run",
     "deploy": "node prepare.mjs && wrangler deploy --env=''",
+    "deploy:pages": "wrangler pages deploy --cwd pages --branch main",
     "types": "wrangler types"
   },
   "devDependencies": {

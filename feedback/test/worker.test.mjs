@@ -10,15 +10,24 @@ const origin = "https://compass-propaganda.github.io";
 const body = (value, note) => ({ visitor: "a".repeat(32), revision: catalog[id], value, ...(note === undefined ? {} : { note }) });
 async function setup(t, limit = 60) {
   const mf = new Miniflare(convertV4MiniflareOptions({
-    modules: true,
-    script: await readFile(new URL("../../dist/feedback/worker.js", import.meta.url), "utf8"),
-    compatibilityDate: "2026-09-06",
-    bindings: { ALLOWED_ORIGINS: origin },
-    d1Databases: ["DB"],
-    ratelimits: { RATE_LIMITER: { namespace_id: "1", simple: { limit, period: 60 } } },
+    workers: [{
+      name: "pages",
+      modules: true,
+      script: await readFile(new URL("../pages/public/_worker.js", import.meta.url), "utf8"),
+      compatibilityDate: "2026-09-06",
+      serviceBindings: { FEEDBACK: "feedback" },
+    }, {
+      name: "feedback",
+      modules: true,
+      script: await readFile(new URL("../../dist/feedback/worker.js", import.meta.url), "utf8"),
+      compatibilityDate: "2026-09-06",
+      bindings: { ALLOWED_ORIGINS: origin },
+      d1Databases: ["DB"],
+      ratelimits: { RATE_LIMITER: { namespace_id: "1", simple: { limit, period: 60 } } },
+    }],
   }));
   t.after(() => mf.dispose());
-  const db = await mf.getD1Database("DB");
+  const db = await mf.getD1Database("DB", "feedback");
   const migration = await readFile(new URL("../migrations/0001_votes.sql", import.meta.url), "utf8");
   await db.exec(migration.replace(/^--.*$/gm, "").replace(/\n/g, " "));
   const send = (data, headers = {}, target = id) => mf.dispatchFetch(`https://feedback.example/recommendations/${target}`, {

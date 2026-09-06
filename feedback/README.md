@@ -1,6 +1,6 @@
 # 권장 반응
 
-Cloudflare Workers와 D1에 동의·비동의 반응과 선택적 메모를 저장합니다. 공개 API는 집계만 반환하며, 메모는 Cloudflare 계정의 관리 권한으로 조회합니다. 사이트는 GitHub Pages에서 계속 제공됩니다.
+Cloudflare Workers와 D1에 동의·비동의 반응과 선택적 메모를 저장합니다. 공개 주소는 프로젝트 이름의 `pages.dev`를 사용하고, Pages가 Service binding으로 Worker에 요청을 전달합니다. 공개 API는 집계만 반환하며, 메모는 Cloudflare 계정의 관리 권한으로 조회합니다. 사이트는 GitHub Pages에서 계속 제공됩니다.
 
 ## 로컬 실행
 
@@ -19,9 +19,10 @@ npm run dev
 
 ## 연결과 배포
 
-1. Workers Free 계정에서 전용 D1을 생성하고 `wrangler.jsonc`의 최상위 `database_id`를 바꿉니다. 현재의 0으로 채운 값은 미설정 값입니다.
+1. 새 환경에서는 Workers Free 계정에 전용 D1을 생성하고 `wrangler.jsonc`의 최상위 `database_id`를 바꿉니다. 현재 설정은 교단의 운영 DB를 가리킵니다.
 2. `feedback/`에서 `npx wrangler d1 migrations apply DB --remote --env=''`로 스키마를 적용하고 `npm run deploy`로 Worker를 배포합니다.
-3. 제공된 HTTPS 주소를 `site/integrations.json`의 `feedback_url`에 넣고 사이트를 빌드·배포합니다. API 주소가 비어 있으면 반응 UI를 생성하지 않습니다.
+3. 처음에는 `npx wrangler pages project create compass-propaganda-feedback --production-branch main`으로 Pages 프로젝트를 만듭니다. `npm run deploy:pages`로 공개 진입점을 배포합니다. 설정은 `pages/wrangler.jsonc`에 있으며 요청의 본문·Origin·IP와 응답을 기존 Worker에 그대로 전달합니다.
+4. Pages의 HTTPS 주소를 `site/integrations.json`의 `feedback_url`에 넣고 사이트를 빌드·배포합니다. API 주소가 비어 있으면 반응 UI를 생성하지 않습니다. Worker의 `workers_dev`와 `preview_urls`는 `false`로 유지하며 계정 하위 도메인을 공개 진입점으로 사용하지 않습니다.
 
 `prepare.mjs`는 현행 권장의 번호와 원문 해시를 Worker에 포함합니다. 권장 원문이나 효력이 바뀌면 Worker를 먼저 다시 배포하고 사이트를 배포합니다. 판본이 다른 페이지에서 보낸 반응은 저장하지 않고 새로고침을 안내합니다. `.github/workflows/feedback.yml`은 검증만 수행하며 Worker 배포는 위 명령으로 수행합니다.
 
